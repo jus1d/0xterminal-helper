@@ -106,7 +106,11 @@ func (b *Bot) handleTextMessage(u tgbotapi.Update) {
 			return
 		}
 		word := parts[0]
-		guessedLetters, _ := strconv.Atoi(parts[1])
+		guessedLetters, err := strconv.Atoi(parts[1])
+		if err != nil {
+			b.sendMessage(userID, "Guessed letters amount should be integer. Use: word guessed-letters-amount")
+			return
+		}
 		attempt := terminal.Attempt{
 			Word:           word,
 			GuessedLetters: guessedLetters,
