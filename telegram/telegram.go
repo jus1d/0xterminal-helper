@@ -101,6 +101,10 @@ func (b *Bot) handleTextMessage(u tgbotapi.Update) {
 		b.sendMessage(userID, content)
 	} else if exists && stage == WaitingAttempt {
 		parts := strings.Split(u.Message.Text, " ")
+		if len(parts) < 2 {
+			b.sendMessage(userID, "U invalid. Use: word guessed-letters-amount")
+			return
+		}
 		word := parts[0]
 		guessedLetters, _ := strconv.Atoi(parts[1])
 		attempt := terminal.Attempt{
