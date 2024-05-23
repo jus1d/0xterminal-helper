@@ -41,7 +41,7 @@ func New(token string, isDebugMode bool) *Bot {
 }
 
 func (b *Bot) Run() {
-	log.Printf("Authorized on account @%s", b.bot.Self.UserName)
+	log.Printf("INFO: authorized on account @%s", b.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -70,7 +70,7 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 
 func (b *Bot) handleStartCommand(u tgbotapi.Update) {
 	userID := u.Message.From.ID
-	b.sendMessage(userID, "Hello, Im gonna help you with your TERMINAL games. Use /game to start")
+	b.sendMessage(userID, "Use /game to register a game")
 	b.stages[userID] = None
 }
 
@@ -83,7 +83,7 @@ func (b *Bot) handleGameCommand(u tgbotapi.Update) {
 		return
 	}
 
-	b.sendMessage(userID, "Send me list of words in your TERMINAL game")
+	b.sendMessage(userID, "Send me list of words in your $TERMINAL game")
 	b.stages[userID] = WaitingWordList
 }
 
@@ -94,7 +94,7 @@ func (b *Bot) handleTextMessage(u tgbotapi.Update) {
 		words := strings.Split(u.Message.Text, "\n")
 		game, err := terminal.New(words)
 		if errors.Is(err, terminal.ErrDifferentWordsLength) {
-			b.sendMessage(userID, "Words should not be different length")
+			b.sendMessage(userID, "Words must be the same length")
 			return
 		}
 		b.games[userID] = game
