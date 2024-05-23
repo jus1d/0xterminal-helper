@@ -92,6 +92,9 @@ func countWordSexyIndex(target string, words []string) int {
 			max = v
 		}
 	}
+	if len(matches) == 0 {
+		return 0
+	}
 	average := sum / len(matches)
 	sexyIndex := max - average
 
