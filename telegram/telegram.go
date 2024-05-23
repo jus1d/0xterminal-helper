@@ -76,12 +76,6 @@ func (b *Bot) handleStartCommand(u tgbotapi.Update) {
 
 func (b *Bot) handleGameCommand(u tgbotapi.Update) {
 	userID := u.Message.From.ID
-	_, exists := b.games[userID]
-	if exists {
-		// TODO: Add buttons: continue | start new game
-		b.sendMessage(userID, "[TODO] You already have started game. Do you want to continue?")
-		return
-	}
 
 	b.sendMessage(userID, "Send me list of words in your $TERMINAL game")
 	b.stages[userID] = WaitingWordList
