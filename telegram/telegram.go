@@ -121,7 +121,7 @@ func (b *Bot) handleTextMessage(u tgbotapi.Update) {
 			content += fmt.Sprintf("#%d: <code>%s</code>\n", i+1, word)
 		}
 		b.sendMessage(userID, content)
-		if len(b.games[userID].Words) == 1 {
+		if len(b.games[userID].Words) <= 1 {
 			b.stages[userID] = None
 		}
 	}
