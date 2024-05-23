@@ -113,8 +113,7 @@ func (b *Bot) handleTextMessage(u tgbotapi.Update) {
 			Word:           word,
 			GuessedLetters: guessedLetters,
 		}
-		b.games[userID].Attempts = append(b.games[userID].Attempts, &attempt)
-		b.games[userID].UpdateWords()
+		b.games[userID].CommitAttempt(attempt)
 		content := fmt.Sprintf("<b>Available %d words:</b>\n", len(b.games[userID].Words))
 		for i, word := range b.games[userID].Words {
 			content += fmt.Sprintf("#%d: <code>%s</code>\n", i+1, word)

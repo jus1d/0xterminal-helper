@@ -3,6 +3,7 @@ package terminal
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 var (
@@ -24,17 +25,22 @@ func New(words []string) (*Game, error) {
 		return nil, ErrDifferentWordsLength
 	}
 
-	return &Game{
+	game := &Game{
 		Words:    words,
 		Attempts: make([]*Attempt, 0),
-	}, nil
+	}
+	game.sortWords()
+
+	return game, nil
 }
 
 func (g *Game) CommitAttempt(attempt Attempt) {
 	g.Attempts = append(g.Attempts, &attempt)
+	g.updateWords()
+	g.sortWords()
 }
 
-func (g *Game) UpdateWords() {
+func (g *Game) updateWords() {
 	updated := make([]string, 0)
 	for _, word := range g.Words {
 		fits := true
@@ -62,14 +68,48 @@ func (g *Game) PrintAvailableWords() {
 	}
 }
 
-func compareWords(a string, b string, expected int) bool {
-	actual := 0
-	for i := 0; i < len(a); i++ {
-		if a[i] == b[i] {
-			actual++
+func (g *Game) sortWords() {
+	sort.Slice(g.Words, func(i, j int) bool {
+		return countWordSexyIndex(g.Words[i], g.Words) < countWordSexyIndex(g.Words[j], g.Words)
+	})
+}
+
+func countWordSexyIndex(target string, words []string) int {
+	matches := make(map[int]int, 0) // key: matches in word, value: words with this amount of matches
+	for i := 0; i < len(words); i++ {
+		if words[i] == target {
+			continue
+		}
+
+		matches[countMatchedLetters(target, words[i])]++
+	}
+
+	sum := 0
+	max := 0
+	for _, v := range matches {
+		sum += v
+		if v > max {
+			max = v
 		}
 	}
-	return expected == actual
+	average := sum / len(matches)
+	sexyIndex := max - average
+
+	return sexyIndex
+}
+
+func compareWords(a string, b string, expected int) bool {
+	return expected == countMatchedLetters(a, b)
+}
+
+func countMatchedLetters(a, b string) int {
+	value := 0
+	for i := 0; i < len(a); i++ {
+		if a[i] == b[i] {
+			value++
+		}
+	}
+	return value
 }
 
 func checkWordsLength(words []string) bool {
