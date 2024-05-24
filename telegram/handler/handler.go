@@ -21,12 +21,11 @@ type Handler struct {
 	stages      map[int64]Stage
 }
 
-func New(client *tgbotapi.BotAPI, isDebugMode bool) *Handler {
+func New(client *tgbotapi.BotAPI) *Handler {
 	return &Handler{
-		client:      client,
-		isDebugMode: isDebugMode,
-		games:       make(map[int64]*terminal.Game, 0),
-		stages:      make(map[int64]Stage, 0),
+		client: client,
+		games:  make(map[int64]*terminal.Game, 0),
+		stages: make(map[int64]Stage, 0),
 	}
 }
 

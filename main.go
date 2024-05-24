@@ -15,7 +15,6 @@ func main() {
 	}
 
 	token := os.Getenv("TOKEN")
-	debug := os.Getenv("DEBUG")
-	bot := telegram.New(token, debug == "true")
+	bot := telegram.New(token)
 	bot.Run()
 }

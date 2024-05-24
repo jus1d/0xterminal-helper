@@ -13,7 +13,7 @@ type Bot struct {
 	handler *handler.Handler
 }
 
-func New(token string, isDebugMode bool) *Bot {
+func New(token string) *Bot {
 	client, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		panic("ERROR: could not start the bot")
@@ -21,7 +21,7 @@ func New(token string, isDebugMode bool) *Bot {
 
 	return &Bot{
 		client:  client,
-		handler: handler.New(client, isDebugMode),
+		handler: handler.New(client),
 	}
 }
 
