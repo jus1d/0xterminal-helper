@@ -15,10 +15,9 @@ const (
 )
 
 type Handler struct {
-	client      *tgbotapi.BotAPI
-	isDebugMode bool
-	games       map[int64]*terminal.Game
-	stages      map[int64]Stage
+	client *tgbotapi.BotAPI
+	games  map[int64]*terminal.Game
+	stages map[int64]Stage
 }
 
 func New(client *tgbotapi.BotAPI) *Handler {

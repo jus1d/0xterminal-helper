@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 var (
@@ -66,6 +67,20 @@ func (g *Game) PrintAvailableWords() {
 	for i, word := range g.Words {
 		fmt.Printf("#%d: %s\n", i, word)
 	}
+}
+
+func RemoveTrashFromWordsList(words []string) []string {
+	cleaned := make([]string, 0)
+	for _, word := range words {
+		if strings.Contains(word, "NaN") {
+			continue
+		}
+		if word[0] == '(' || word[0] == '{' || word[0] == '[' {
+			continue
+		}
+		cleaned = append(cleaned, word)
+	}
+	return cleaned
 }
 
 func (g *Game) sortWords() {

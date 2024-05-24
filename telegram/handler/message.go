@@ -19,7 +19,7 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 	switch stage {
 	case WaitingWordList:
 		words := strings.Split(u.Message.Text, "\n")
-		game, err := terminal.New(words)
+		game, err := terminal.New(terminal.RemoveTrashFromWordsList(words))
 		if errors.Is(err, terminal.ErrDifferentWordsLength) {
 			h.sendTextMessage(userID, "Words must be the same length", nil)
 			return

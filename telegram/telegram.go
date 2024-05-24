@@ -40,7 +40,7 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		log.Printf("INFO: @%s [ID: %d] says: `%s`", u.Message.From.UserName, u.CallbackQuery.From.ID, u.Message.Text)
+		log.Printf("INFO: @%s [ID: %d] says: `%s`", u.Message.From.UserName, u.Message.From.ID, u.Message.Text)
 
 		switch u.Message.Text {
 		case "/start":
