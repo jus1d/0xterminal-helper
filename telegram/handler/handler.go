@@ -31,25 +31,23 @@ func New(client *tgbotapi.BotAPI, isDebugMode bool) *Handler {
 	}
 }
 
-func (h *Handler) sendTextMessage(chatID int64, content string) {
+func (h *Handler) sendTextMessage(chatID int64, content string, markup *tgbotapi.InlineKeyboardMarkup) {
 	message := tgbotapi.NewMessage(chatID, content)
 	message.ParseMode = tgbotapi.ModeHTML
+	message.ReplyMarkup = markup
 
 	_, err := h.client.Send(message)
 	if err != nil {
 		log.Printf("ERROR: could not send message to ID: %d, error: %s\n", chatID, err.Error())
 		return
 	}
-	if h.isDebugMode {
-		log.Printf("DEBUG: message sent to ID: %d, content: %s\n", chatID, content)
-	}
 }
 
-func (h *Handler) sendTextMessageWithButtons(chatID int64, content string, markup *tgbotapi.InlineKeyboardMarkup) {
-	message := tgbotapi.NewMessage(chatID, content)
+func (h *Handler) editMessage(chatID int64, messageID int, content string, markup *tgbotapi.InlineKeyboardMarkup) {
+	message := tgbotapi.NewEditMessageText(chatID, messageID, content)
 	message.ParseMode = tgbotapi.ModeHTML
-
 	message.ReplyMarkup = markup
+
 	_, err := h.client.Send(message)
 	if err != nil {
 		log.Printf("ERROR: could not send message to ID: %d, error: %s\n", chatID, err.Error())

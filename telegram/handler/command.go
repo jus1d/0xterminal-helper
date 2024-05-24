@@ -8,7 +8,7 @@ import (
 
 func (h *Handler) CommandStart(u tgbotapi.Update) {
 	userID := u.Message.From.ID
-	h.sendTextMessage(userID, "Use /game to register a game")
+	h.sendTextMessage(userID, "Use /game to register a game", nil)
 	h.stages[userID] = None
 }
 
@@ -20,9 +20,9 @@ func (h *Handler) CommandGame(u tgbotapi.Update) {
 		for i, word := range game.Words {
 			content += fmt.Sprintf("_%d: %s\n", i+1, word)
 		}
-		h.sendTextMessageWithButtons(userID, content, GetMarkupGameMenu())
+		h.sendTextMessage(userID, content, GetMarkupGameMenu())
 	} else {
-		h.sendTextMessage(userID, "Send me list of words in your $TERMINAL game")
+		h.sendTextMessage(userID, "Send me list of words in your $TERMINAL game", nil)
 		h.stages[userID] = WaitingWordList
 	}
 }

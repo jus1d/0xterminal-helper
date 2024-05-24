@@ -50,4 +50,13 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.TextMessage(u)
 		}
 	}
+	if u.CallbackQuery != nil {
+		query := u.CallbackData()
+		switch query {
+		case "game-continue":
+			b.handler.CallbackContinueGame(u)
+		case "start-new-game":
+			b.handler.CallbackStartNewGame(u)
+		}
+	}
 }
