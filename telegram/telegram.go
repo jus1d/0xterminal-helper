@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"log"
+	"strings"
 	"terminal/telegram/handler"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -39,7 +40,7 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		log.Printf("[@%s] says: `%s`", u.Message.From.UserName, u.Message.Text)
+		log.Printf("INFO: @%s [ID: %d] says: `%s`", u.Message.From.UserName, u.CallbackQuery.From.ID, u.Message.Text)
 
 		switch u.Message.Text {
 		case "/start":
@@ -51,12 +52,18 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 		}
 	}
 	if u.CallbackQuery != nil {
+		log.Printf("INFO: @%s [ID: %d] used callback: `%s`", u.CallbackQuery.From.UserName, u.CallbackQuery.From.ID, u.CallbackData())
+
 		query := u.CallbackData()
-		switch query {
-		case "game-continue":
+		switch {
+		case query == "game-continue":
 			b.handler.CallbackContinueGame(u)
-		case "start-new-game":
+		case query == "start-new-game":
 			b.handler.CallbackStartNewGame(u)
+		case strings.HasPrefix(query, "choose-word:"):
+			b.handler.CallbackChooseWord(u)
+		case strings.HasPrefix(query, "choose-guessed-letters:"):
+			b.handler.CallbackChooseGuessedLetters(u)
 		}
 	}
 }

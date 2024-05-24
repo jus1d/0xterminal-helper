@@ -12,7 +12,6 @@ type Stage uint8
 const (
 	None = iota
 	WaitingWordList
-	WaitingAttempt
 )
 
 type Handler struct {
