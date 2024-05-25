@@ -1,17 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"terminal/internal/telegram"
+	"terminal/pkg/log"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		fmt.Printf("ERROR: could not load .env file: %v", err)
-		return
+		log.Fatal("could not load `.env` file", err)
 	}
 
 	token := os.Getenv("TOKEN")

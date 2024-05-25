@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"log"
 	"terminal/internal/terminal"
+	"terminal/pkg/log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -35,7 +35,7 @@ func (h *Handler) sendTextMessage(chatID int64, content string, markup *tgbotapi
 
 	_, err := h.client.Send(message)
 	if err != nil {
-		log.Printf("ERROR: could not send message to ID: %d, error: %s\n", chatID, err.Error())
+		log.Error("could not send message", err, log.WithInt64("to_id", chatID))
 		return
 	}
 }
@@ -47,7 +47,7 @@ func (h *Handler) editMessage(chatID int64, messageID int, content string, marku
 
 	_, err := h.client.Send(message)
 	if err != nil {
-		log.Printf("ERROR: could not send message to ID: %d, error: %s\n", chatID, err.Error())
+		log.Error("could not send message", err, log.WithInt64("to_id", chatID))
 		return
 	}
 }

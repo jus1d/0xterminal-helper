@@ -1,9 +1,9 @@
 package telegram
 
 import (
-	"log"
 	"strings"
 	"terminal/internal/telegram/handler"
+	"terminal/pkg/log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -16,7 +16,7 @@ type Bot struct {
 func New(token string) *Bot {
 	client, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		panic("ERROR: could not start the bot")
+		log.Fatal("could not start the bot", err)
 	}
 
 	return &Bot{
@@ -26,7 +26,7 @@ func New(token string) *Bot {
 }
 
 func (b *Bot) Run() {
-	log.Printf("INFO: authorized on account @%s", b.client.Self.UserName)
+	log.Info("bot authorized into telegram API", log.WithString("account", b.client.Self.FirstName))
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -40,7 +40,7 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		log.Printf("INFO: @%s [ID: %d] says: `%s`", u.Message.From.UserName, u.Message.From.ID, u.Message.Text)
+		log.Info("message recieved", log.WithString("username", u.Message.From.UserName), log.WithInt64("id", u.Message.From.ID), log.WithString("content", u.Message.Text))
 
 		switch u.Message.Text {
 		case "/start":
@@ -52,9 +52,9 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 		}
 	}
 	if u.CallbackQuery != nil {
-		log.Printf("INFO: @%s [ID: %d] used callback: `%s`", u.CallbackQuery.From.UserName, u.CallbackQuery.From.ID, u.CallbackData())
-
 		query := u.CallbackData()
+		log.Info("callback recieved", log.WithString("username", u.CallbackQuery.From.UserName), log.WithInt64("id", u.CallbackQuery.From.ID), log.WithString("query", query))
+
 		switch {
 		case query == "game-continue":
 			b.handler.CallbackContinueGame(u)
