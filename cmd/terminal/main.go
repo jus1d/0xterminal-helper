@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"terminal/telegram"
+	"terminal/internal/telegram"
 
 	"github.com/joho/godotenv"
 )

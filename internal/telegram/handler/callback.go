@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"terminal/terminal"
+	"terminal/internal/terminal"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
