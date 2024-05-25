@@ -15,11 +15,11 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 
 	game, exists := h.games[userID]
 	if !exists {
-		h.editMessage(userID, messageID, "You have no started games. Use /game to start new one", nil)
+		h.editMessage(userID, messageID, "<b>You have no started games</b>\nUse /newgame to start new one", nil)
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below:", GetMarkupWords(game.Words))
+	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(game.Words))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
@@ -32,7 +32,7 @@ func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
 	userID := u.CallbackQuery.From.ID
 	parts := strings.Split(u.CallbackData(), ":")
 	word := parts[1]
-	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "How manu guessed letters?", GetMarkupGuessedLetters(word))
+	h.editMessage(userID, u.CallbackQuery.Message.MessageID, fmt.Sprintf("<b>How many guessed letters in word</b> <code>%s</code>?", word), GetMarkupGuessedLetters(word))
 }
 
 func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
@@ -45,7 +45,7 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 
 	game, exists := h.games[userID]
 	if !exists {
-		h.editMessage(userID, messageID, "Use /game to start ne game", nil)
+		h.editMessage(userID, messageID, "Use /newgame to start ne game", nil)
 		return
 	}
 
@@ -57,14 +57,14 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 
 	if len(game.Words) == 1 {
 		delete(h.games, userID)
-		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> %s", game.Words[0]), nil)
+		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.Words[0]), nil)
 		return
 	}
 	if len(game.Words) == 0 {
 		delete(h.games, userID)
-		h.editMessage(userID, messageID, "No possible words left. Try again, may be you made a mistake?", nil)
+		h.editMessage(userID, messageID, "<b>No possible words left.</b>\nTry again, may be you made a mistake?", nil)
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below:", GetMarkupWords(h.games[userID].Words))
+	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(h.games[userID].Words))
 }

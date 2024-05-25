@@ -26,7 +26,7 @@ func New(token string) *Bot {
 }
 
 func (b *Bot) Run() {
-	log.Info("bot authorized into telegram API", log.WithString("account", b.client.Self.FirstName))
+	log.Info("bot authorized into telegram API", log.WithString("account", b.client.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -40,12 +40,12 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		log.Info("message recieved", log.WithString("username", u.Message.From.UserName), log.WithInt64("id", u.Message.From.ID), log.WithString("content", u.Message.Text))
+		log.Info("message recieved", log.WithString("author_username", u.Message.From.UserName), log.WithInt64("author_id", u.Message.From.ID), log.WithString("content", u.Message.Text))
 
 		switch u.Message.Text {
 		case "/start":
 			b.handler.CommandStart(u)
-		case "/game":
+		case "/newgame":
 			b.handler.CommandGame(u)
 		default:
 			b.handler.TextMessage(u)
@@ -53,7 +53,7 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	}
 	if u.CallbackQuery != nil {
 		query := u.CallbackData()
-		log.Info("callback recieved", log.WithString("username", u.CallbackQuery.From.UserName), log.WithInt64("id", u.CallbackQuery.From.ID), log.WithString("query", query))
+		log.Info("callback recieved", log.WithString("author_username", u.CallbackQuery.From.UserName), log.WithInt64("author_id", u.CallbackQuery.From.ID), log.WithString("query", query))
 
 		switch {
 		case query == "game-continue":

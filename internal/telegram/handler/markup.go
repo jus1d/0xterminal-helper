@@ -48,15 +48,16 @@ func GetMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
 		rows = append(rows, row)
 	}
 
-	// for i := 0; i <= len(word); i += rowCapacity {
-	// 	buttons := make([]tgbotapi.InlineKeyboardButton, 0)
-	// 	for j := 0; j < rowCapacity && i+j <= len(word); j++ {
-	// 		buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%d", i+j), fmt.Sprintf("choose-guessed-letters:%s:%d", word, i+j)))
-	// 	}
-	// 	rows[i/rowCapacity] = tgbotapi.NewInlineKeyboardRow(buttons...)
-	// }
-
 	markup := tgbotapi.NewInlineKeyboardMarkup(rows...)
 
+	return &markup
+}
+
+func GetMarkupNewGame() *tgbotapi.InlineKeyboardMarkup {
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Start new game", "start-new-game"),
+		),
+	)
 	return &markup
 }
