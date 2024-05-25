@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"terminal/internal/terminal"
 	"terminal/pkg/log"
 )
 
@@ -18,7 +19,7 @@ type Game struct {
 	Target string   `json:"target"`
 }
 
-func SaveGame(game Game) {
+func SaveGame(game *Game) {
 	jsonData, err := os.ReadFile(Path)
 	if err != nil {
 		log.Error("could not read JSON file", err, log.WithString("path", Path))
@@ -32,7 +33,7 @@ func SaveGame(game Game) {
 		return
 	}
 
-	data.Games = append(data.Games, game)
+	data.Games = append(data.Games, *game)
 	SaveData(&data)
 }
 
@@ -50,4 +51,11 @@ func SaveData(data *Data) {
 	}
 
 	log.Info(fmt.Sprintf("games data saved to `%s`", Path))
+}
+
+func ConvertToGame(game *terminal.Game) *Game {
+	return &Game{
+		Words:  game.InitialWords,
+		Target: game.AvailableWords[0],
+	}
 }

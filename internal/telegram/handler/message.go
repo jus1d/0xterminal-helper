@@ -33,7 +33,7 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 		h.games[userID] = game
 		h.stages[userID] = None
 
-		h.sendTextMessage(userID, "Choose picked word below", GetMarkupWords(h.games[userID].Words))
+		h.sendTextMessage(userID, "Choose picked word below", GetMarkupWords(h.games[userID].AvailableWords))
 	case None:
 		h.sendTextMessage(userID, "Use /newgame or click the button to start new $TERMINAL game", GetMarkupNewGame())
 	}

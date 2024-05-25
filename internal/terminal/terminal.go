@@ -12,8 +12,9 @@ var (
 )
 
 type Game struct {
-	Words    []string
-	Attempts []*Attempt
+	InitialWords   []string
+	AvailableWords []string
+	Attempts       []*Attempt
 }
 
 type Attempt struct {
@@ -27,8 +28,9 @@ func New(words []string) (*Game, error) {
 	}
 
 	game := &Game{
-		Words:    words,
-		Attempts: make([]*Attempt, 0),
+		InitialWords:   words,
+		AvailableWords: words,
+		Attempts:       make([]*Attempt, 0),
 	}
 	game.sortWords()
 
@@ -43,7 +45,7 @@ func (g *Game) CommitAttempt(attempt Attempt) {
 
 func (g *Game) updateWords() {
 	updated := make([]string, 0)
-	for _, word := range g.Words {
+	for _, word := range g.AvailableWords {
 		fits := true
 		for _, tried := range g.Attempts {
 			if !compareWords(word, tried.Word, tried.GuessedLetters) {
@@ -55,16 +57,16 @@ func (g *Game) updateWords() {
 			updated = append(updated, word)
 		}
 	}
-	g.Words = updated
+	g.AvailableWords = updated
 }
 
 func (g *Game) IsFinished() bool {
-	return len(g.Words) == 1
+	return len(g.AvailableWords) == 1
 }
 
 func (g *Game) PrintAvailableWords() {
-	fmt.Printf("Available %d words:\n", len(g.Words))
-	for i, word := range g.Words {
+	fmt.Printf("Available %d words:\n", len(g.AvailableWords))
+	for i, word := range g.AvailableWords {
 		fmt.Printf("#%d: %s\n", i, word)
 	}
 }
@@ -84,8 +86,8 @@ func RemoveTrashFromWordsList(words []string) []string {
 }
 
 func (g *Game) sortWords() {
-	sort.Slice(g.Words, func(i, j int) bool {
-		return countWordSexyIndex(g.Words[i], g.Words) < countWordSexyIndex(g.Words[j], g.Words)
+	sort.Slice(g.AvailableWords, func(i, j int) bool {
+		return countWordSexyIndex(g.AvailableWords[i], g.AvailableWords) < countWordSexyIndex(g.AvailableWords[j], g.AvailableWords)
 	})
 }
 

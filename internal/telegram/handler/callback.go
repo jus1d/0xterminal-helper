@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"terminal/internal/storage"
 	"terminal/internal/terminal"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -19,7 +20,7 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(game.Words))
+	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
@@ -55,16 +56,17 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 	}
 	game.CommitAttempt(attempt)
 
-	if len(game.Words) == 1 {
+	if len(game.AvailableWords) == 1 {
 		delete(h.games, userID)
-		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.Words[0]), nil)
+		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), nil)
+		storage.SaveGame(storage.ConvertToGame(game))
 		return
 	}
-	if len(game.Words) == 0 {
+	if len(game.AvailableWords) == 0 {
 		delete(h.games, userID)
 		h.editMessage(userID, messageID, "<b>No possible words left.</b>\nTry again, may be you made a mistake?", nil)
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(h.games[userID].Words))
+	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(h.games[userID].AvailableWords))
 }

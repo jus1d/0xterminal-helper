@@ -17,7 +17,7 @@ func (h *Handler) CommandGame(u tgbotapi.Update) {
 	game, exists := h.games[userID]
 	if exists {
 		content := "<b>You already have started game. Do you want to continue it?</b>\n\n<b>Words:</b>\n"
-		for _, word := range game.Words {
+		for _, word := range game.AvailableWords {
 			content += fmt.Sprintf("<code>%s</code>\n", word)
 		}
 		h.sendTextMessage(userID, content, GetMarkupGameMenu())
