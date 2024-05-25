@@ -23,7 +23,7 @@ func main() {
 
 func initStorage() {
 	if _, err := os.Stat(storage.Path); os.IsNotExist(err) {
-		err = os.Mkdir("./storage", 0755)
+		err = os.Mkdir("./storage", 0644)
 		if err != nil {
 			log.Fatal("could not create storage folder", err)
 		}
