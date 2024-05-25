@@ -33,20 +33,67 @@ func GetMarkupWords(words []string) *tgbotapi.InlineKeyboardMarkup {
 }
 
 func GetMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
-	rowCapacity := len(word) / 2
-	if rowCapacity > 5 {
-		rowCapacity = len(word) / 3
+	if len(word) > 21 {
+		return getHugeMarkupGuessedLetters(word)
+	}
+	rules := map[int][]int{
+		1:  {1},
+		2:  {2},
+		3:  {3},
+		4:  {4},
+		5:  {3, 2},
+		6:  {3, 3},
+		7:  {4, 3},
+		8:  {4, 4},
+		9:  {5, 4},
+		10: {5, 5},
+		11: {6, 5},
+		12: {6, 6},
+		13: {5, 5, 3},
+		14: {5, 5, 4},
+		15: {5, 5, 5},
+		16: {6, 5, 5},
+		17: {5, 5, 4, 3},
+		18: {5, 5, 5, 4},
+		19: {5, 5, 5, 4},
+		20: {5, 5, 5, 5},
 	}
 
 	rows := make([][]tgbotapi.InlineKeyboardButton, 0)
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("None :c", fmt.Sprintf("choose-guessed-letters:%s:%d", word, 0))})
 
-	for i := 0; i <= len(word); i += 5 {
+	rule := rules[len(word)-1]
+	i := 1
+	for ri := range rule {
 		row := make([]tgbotapi.InlineKeyboardButton, 0)
-		for j := 0; len(row) < 5 && i+j <= len(word); j++ {
+		for rule[ri] != 0 && i < len(word) {
+			row = append(row, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%d", i), fmt.Sprintf("choose-guessed-letters:%s:%d", word, i)))
+			i++
+			rule[ri]--
+		}
+		rows = append(rows, row)
+	}
+
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("All!", fmt.Sprintf("choose-guessed-letters:%s:%d", word, len(word)))})
+
+	markup := tgbotapi.NewInlineKeyboardMarkup(rows...)
+
+	return &markup
+}
+
+func getHugeMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
+	rows := make([][]tgbotapi.InlineKeyboardButton, 0)
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("None :c", fmt.Sprintf("choose-guessed-letters:%s:%d", word, 0))})
+
+	for i := 1; i < len(word); i += 5 {
+		row := make([]tgbotapi.InlineKeyboardButton, 0)
+		for j := 0; len(row) < 5 && i+j < len(word); j++ {
 			row = append(row, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%d", i+j), fmt.Sprintf("choose-guessed-letters:%s:%d", word, i+j)))
 		}
 		rows = append(rows, row)
 	}
+
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("All!", fmt.Sprintf("choose-guessed-letters:%s:%d", word, len(word)))})
 
 	markup := tgbotapi.NewInlineKeyboardMarkup(rows...)
 
