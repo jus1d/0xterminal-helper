@@ -61,7 +61,7 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 		Word:           word,
 		GuessedLetters: guessedLetters,
 	}
-	game.CommitAttempt(attempt)
+	game.SubmitAttempt(attempt)
 
 	if len(game.AvailableWords) == 1 {
 		delete(h.games, userID)

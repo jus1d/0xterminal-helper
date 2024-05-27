@@ -16,9 +16,10 @@ type Data struct {
 }
 
 type Game struct {
-	Words    []string `json:"words"`
-	Target   string   `json:"target"`
-	PlayedBy User     `json:"played_by"`
+	Words     []string `json:"words"`
+	Target    string   `json:"target"`
+	WordsHash string   `json:"words_hash"`
+	PlayedBy  User     `json:"played_by"`
 }
 
 type User struct {
@@ -27,23 +28,12 @@ type User struct {
 }
 
 func SaveGame(game *Game) {
-	jsonData, err := os.ReadFile(Path)
-	if err != nil {
-		log.Error("could not read JSON file", err, log.WithString("path", Path))
-		return
-	}
-
-	var data Data
-	err = json.Unmarshal(jsonData, &data)
-	if err != nil {
-		log.Error("could not unmarshall JSON data", err)
-		return
-	}
+	data := LoadData()
 
 	data.Games = append(data.Games, *game)
 	data.TotalGames = len(data.Games)
 
-	SaveData(&data)
+	SaveData(data)
 }
 
 func SaveData(data *Data) {
@@ -62,6 +52,36 @@ func SaveData(data *Data) {
 	log.Info(fmt.Sprintf("games data saved to `%s`", Path))
 }
 
+func LoadData() *Data {
+	jsonData, err := os.ReadFile(Path)
+	if err != nil {
+		log.Error("could not read JSON file", err, log.WithString("path", Path))
+		return nil
+	}
+
+	var data Data
+	err = json.Unmarshal(jsonData, &data)
+	if err != nil {
+		log.Error("could not unmarshall JSON data", err)
+		return nil
+	}
+
+	return &data
+}
+
+func TryFindAnswer(words []string) string {
+	data := LoadData()
+
+	hash := terminal.ComputeWordsHash(words)
+
+	for _, game := range data.Games {
+		if game.WordsHash == hash {
+			return game.Target
+		}
+	}
+	return ""
+}
+
 func ConvertToGame(game *terminal.Game, username string, telegramID int64) *Game {
 	return &Game{
 		Words:  game.InitialWords,
@@ -70,5 +90,6 @@ func ConvertToGame(game *terminal.Game, username string, telegramID int64) *Game
 			Username:   username,
 			TelegramID: telegramID,
 		},
+		WordsHash: terminal.ComputeWordsHash(game.InitialWords),
 	}
 }

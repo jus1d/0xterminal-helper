@@ -1,10 +1,12 @@
 package terminal
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
+	"terminal/pkg/slice"
 )
 
 var (
@@ -23,7 +25,7 @@ type Attempt struct {
 }
 
 func New(words []string) (*Game, error) {
-	if !checkWordsLength(words) {
+	if !isWordsEqualLength(words) {
 		return nil, ErrDifferentWordsLength
 	}
 
@@ -32,15 +34,43 @@ func New(words []string) (*Game, error) {
 		AvailableWords: words,
 		Attempts:       make([]*Attempt, 0),
 	}
-	game.sortWords()
+	game.sortWordsBySexyIndex()
 
 	return game, nil
 }
 
-func (g *Game) CommitAttempt(attempt Attempt) {
+func (g *Game) SubmitAttempt(attempt Attempt) {
 	g.Attempts = append(g.Attempts, &attempt)
 	g.updateWords()
-	g.sortWords()
+	g.sortWordsBySexyIndex()
+}
+
+func RemoveTrashFromWordList(words []string) []string {
+	cleaned := make([]string, 0)
+	for _, word := range words {
+		if strings.Contains(word, "NaN") {
+			continue
+		}
+		if word[0] == '(' || word[0] == '{' || word[0] == '[' {
+			continue
+		}
+		cleaned = append(cleaned, word)
+	}
+	return slice.Unique(cleaned)
+}
+
+func ComputeWordsHash(words []string) string {
+	sort.Strings(words)
+
+	var builder strings.Builder
+	for _, word := range words {
+		builder.WriteString(word)
+		builder.WriteString(" ")
+	}
+
+	checksum := sha256.Sum256([]byte(builder.String()))
+
+	return hex.EncodeToString(checksum[:])
 }
 
 func (g *Game) updateWords() {
@@ -48,7 +78,7 @@ func (g *Game) updateWords() {
 	for _, word := range g.AvailableWords {
 		fits := true
 		for _, tried := range g.Attempts {
-			if !compareWords(word, tried.Word, tried.GuessedLetters) {
+			if !compareWordsMatchedLetters(word, tried.Word, tried.GuessedLetters) {
 				fits = false
 				break
 			}
@@ -60,46 +90,7 @@ func (g *Game) updateWords() {
 	g.AvailableWords = updated
 }
 
-func (g *Game) IsFinished() bool {
-	return len(g.AvailableWords) == 1
-}
-
-func (g *Game) PrintAvailableWords() {
-	fmt.Printf("Available %d words:\n", len(g.AvailableWords))
-	for i, word := range g.AvailableWords {
-		fmt.Printf("#%d: %s\n", i, word)
-	}
-}
-
-func RemoveTrashFromWordsList(words []string) []string {
-	cleaned := make([]string, 0)
-	for _, word := range words {
-		if strings.Contains(word, "NaN") {
-			continue
-		}
-		if word[0] == '(' || word[0] == '{' || word[0] == '[' {
-			continue
-		}
-		cleaned = append(cleaned, word)
-	}
-	return unique(cleaned)
-}
-
-func unique(words []string) []string {
-	wordMap := make(map[string]bool)
-	var uniqueWords []string
-
-	for _, word := range words {
-		if !wordMap[word] {
-			wordMap[word] = true
-			uniqueWords = append(uniqueWords, word)
-		}
-	}
-
-	return uniqueWords
-}
-
-func (g *Game) sortWords() {
+func (g *Game) sortWordsBySexyIndex() {
 	sort.Slice(g.AvailableWords, func(i, j int) bool {
 		return countWordSexyIndex(g.AvailableWords[i], g.AvailableWords) < countWordSexyIndex(g.AvailableWords[j], g.AvailableWords)
 	})
@@ -132,7 +123,7 @@ func countWordSexyIndex(target string, words []string) int {
 	return sexyIndex
 }
 
-func compareWords(a string, b string, expected int) bool {
+func compareWordsMatchedLetters(a string, b string, expected int) bool {
 	return expected == countMatchedLetters(a, b)
 }
 
@@ -146,7 +137,7 @@ func countMatchedLetters(a, b string) int {
 	return value
 }
 
-func checkWordsLength(words []string) bool {
+func isWordsEqualLength(words []string) bool {
 	if len(words) == 0 {
 		return true
 	}
