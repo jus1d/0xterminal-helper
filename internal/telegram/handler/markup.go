@@ -12,7 +12,7 @@ func GetMarkupGameMenu() *tgbotapi.InlineKeyboardMarkup {
 			tgbotapi.NewInlineKeyboardButtonData("Continue", "game-continue"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("New game", "start-new-game"),
+			tgbotapi.NewInlineKeyboardButtonData("Start new game", "start-new-game"),
 		),
 	)
 	return &markup
@@ -108,7 +108,7 @@ func getHugeMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
 func GetMarkupNewGame() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("New game", "start-new-game"),
+			tgbotapi.NewInlineKeyboardButtonData("Start new game", "start-new-game"),
 		),
 	)
 	return &markup

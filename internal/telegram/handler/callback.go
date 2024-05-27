@@ -16,24 +16,24 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 
 	game, exists := h.games[userID]
 	if !exists {
-		h.editMessage(userID, messageID, "<b>You have no started games</b>\nUse /newgame to start new one", nil)
+		h.editMessage(userID, messageID, "<b>You have no started games</b>\n\nUse /newgame or button to start new one", GetMarkupNewGame())
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(game.AvailableWords))
+	h.editMessage(userID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
 	userID := u.CallbackQuery.From.ID
 	h.stages[userID] = WaitingWordList
 	delete(h.games, userID)
-	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "Send me list of words in your $TERMINAL game", nil)
+	h.sendTextMessage(userID, "Send me list of words in your $TERMINAL game", nil)
 }
 
 func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 	userID := u.CallbackQuery.From.ID
 	game := h.games[userID]
-	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "Choose picked word below", GetMarkupWords(game.AvailableWords))
+	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
@@ -53,7 +53,7 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 
 	game, exists := h.games[userID]
 	if !exists {
-		h.editMessage(userID, messageID, "Use /newgame to start ne game", nil)
+		h.editMessage(userID, messageID, "Use /newgame or button to start new game", GetMarkupNewGame())
 		return
 	}
 
@@ -75,9 +75,9 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 	}
 	if len(game.AvailableWords) == 0 {
 		delete(h.games, userID)
-		h.editMessage(userID, messageID, "<b>No possible words left.</b>\nTry again, may be you made a mistake?", nil)
+		h.editMessage(userID, messageID, "<b>No matching words left.</b>\n\nTry again, may be you made a mistake?", nil)
 		return
 	}
 
-	h.editMessage(userID, messageID, "Choose picked word below", GetMarkupWords(h.games[userID].AvailableWords))
+	h.editMessage(userID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[userID].AvailableWords))
 }
