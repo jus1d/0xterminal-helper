@@ -47,6 +47,8 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.CommandStart(u)
 		case "/newgame":
 			b.handler.CommandGame(u)
+		case "/dataset":
+			b.handler.CommandDataset(u)
 		default:
 			b.handler.TextMessage(u)
 		}

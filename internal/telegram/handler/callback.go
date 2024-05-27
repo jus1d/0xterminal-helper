@@ -59,7 +59,11 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 	if len(game.AvailableWords) == 1 {
 		delete(h.games, userID)
 		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), nil)
-		storage.SaveGame(storage.ConvertToGame(game))
+
+		// we'll assume that game is kinda spam, if initial words is less than 6
+		if len(game.InitialWords) >= 6 {
+			storage.SaveGame(storage.ConvertToGame(game))
+		}
 		return
 	}
 	if len(game.AvailableWords) == 0 {
