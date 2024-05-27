@@ -2,6 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"os"
+	"terminal/pkg/log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -24,5 +26,28 @@ func (h *Handler) CommandGame(u tgbotapi.Update) {
 	} else {
 		h.sendTextMessage(userID, "Send me list of words in your $TERMINAL game", nil)
 		h.stages[userID] = WaitingWordList
+	}
+}
+
+func (h *Handler) CommandDataset(u tgbotapi.Update) {
+	userID := u.Message.From.ID
+
+	file, err := os.Open("./storage/data.json")
+	if err != nil {
+		log.Error("could not open file", err)
+		h.sendTextMessage(userID, "Could not send file", nil)
+	}
+	defer file.Close()
+
+	reader := tgbotapi.FileReader{
+		Name:   "0xterminal-dataset.json",
+		Reader: file,
+	}
+
+	document := tgbotapi.NewDocument(userID, reader)
+
+	_, err = h.client.Send(document)
+	if err != nil {
+		log.Info("dataset sent", log.WithInt64("id", userID), log.WithString("username", u.Message.From.UserName))
 	}
 }

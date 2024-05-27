@@ -26,7 +26,14 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
 	userID := u.CallbackQuery.From.ID
 	h.stages[userID] = WaitingWordList
+	delete(h.games, userID)
 	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "Send me list of words in your $TERMINAL game", nil)
+}
+
+func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
+	userID := u.CallbackQuery.From.ID
+	game := h.games[userID]
+	h.editMessage(userID, u.CallbackQuery.Message.MessageID, "Choose picked word below", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
@@ -58,8 +65,12 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 
 	if len(game.AvailableWords) == 1 {
 		delete(h.games, userID)
-		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), nil)
-		storage.SaveGame(storage.ConvertToGame(game))
+		h.editMessage(userID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), GetMarkupNewGame())
+
+		// we'll assume that game is kinda spam, if initial words is less than 6
+		if len(game.InitialWords) >= 6 {
+			storage.SaveGame(storage.ConvertToGame(game))
+		}
 		return
 	}
 	if len(game.AvailableWords) == 0 {
