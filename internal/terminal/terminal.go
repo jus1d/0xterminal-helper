@@ -82,7 +82,21 @@ func RemoveTrashFromWordsList(words []string) []string {
 		}
 		cleaned = append(cleaned, word)
 	}
-	return cleaned
+	return unique(cleaned)
+}
+
+func unique(words []string) []string {
+	wordMap := make(map[string]bool)
+	var uniqueWords []string
+
+	for _, word := range words {
+		if !wordMap[word] {
+			wordMap[word] = true
+			uniqueWords = append(uniqueWords, word)
+		}
+	}
+
+	return uniqueWords
 }
 
 func (g *Game) sortWords() {
