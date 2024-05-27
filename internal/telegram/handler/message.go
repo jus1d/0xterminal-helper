@@ -18,14 +18,14 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 
 	switch stage {
 	case WaitingWordList:
-		words := strings.Split(u.Message.Text, "\n")
+		words := terminal.RemoveTrashFromWordsList(strings.Split(u.Message.Text, "\n"))
 
 		if len(words) < 6 {
-			h.sendTextMessage(userID, "<b>Word list can't be too short</b>\n\nSend me anotehr list", nil)
+			h.sendTextMessage(userID, "<b>Word list can't be too short</b>\n\nSend me list of at least 6 unique words", nil)
 			return
 		}
 
-		game, err := terminal.New(terminal.RemoveTrashFromWordsList(words))
+		game, err := terminal.New(words)
 		if errors.Is(err, terminal.ErrDifferentWordsLength) {
 			h.sendTextMessage(userID, "Words must be the same length", nil)
 			return

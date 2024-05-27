@@ -11,7 +11,8 @@ import (
 const Path = "./storage/data.json"
 
 type Data struct {
-	Games []Game `json:"games"`
+	TotalGames int    `json:"total_games"`
+	Games      []Game `json:"games"`
 }
 
 type Game struct {
@@ -34,6 +35,8 @@ func SaveGame(game *Game) {
 	}
 
 	data.Games = append(data.Games, *game)
+	data.TotalGames = len(data.Games)
+
 	SaveData(&data)
 }
 
