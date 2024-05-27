@@ -1,10 +1,12 @@
 package terminal
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
+	"terminal/pkg/slice"
 )
 
 var (
@@ -43,6 +45,20 @@ func (g *Game) CommitAttempt(attempt Attempt) {
 	g.sortWords()
 }
 
+func RemoveTrashFromWordsList(words []string) []string {
+	cleaned := make([]string, 0)
+	for _, word := range words {
+		if strings.Contains(word, "NaN") {
+			continue
+		}
+		if word[0] == '(' || word[0] == '{' || word[0] == '[' {
+			continue
+		}
+		cleaned = append(cleaned, word)
+	}
+	return slice.Unique(cleaned)
+}
+
 func (g *Game) updateWords() {
 	updated := make([]string, 0)
 	for _, word := range g.AvailableWords {
@@ -60,43 +76,18 @@ func (g *Game) updateWords() {
 	g.AvailableWords = updated
 }
 
-func (g *Game) IsFinished() bool {
-	return len(g.AvailableWords) == 1
-}
+func ComputeWordsHash(words []string) string {
+	sort.Strings(words)
 
-func (g *Game) PrintAvailableWords() {
-	fmt.Printf("Available %d words:\n", len(g.AvailableWords))
-	for i, word := range g.AvailableWords {
-		fmt.Printf("#%d: %s\n", i, word)
-	}
-}
-
-func RemoveTrashFromWordsList(words []string) []string {
-	cleaned := make([]string, 0)
+	var builder strings.Builder
 	for _, word := range words {
-		if strings.Contains(word, "NaN") {
-			continue
-		}
-		if word[0] == '(' || word[0] == '{' || word[0] == '[' {
-			continue
-		}
-		cleaned = append(cleaned, word)
-	}
-	return unique(cleaned)
-}
-
-func unique(words []string) []string {
-	wordMap := make(map[string]bool)
-	var uniqueWords []string
-
-	for _, word := range words {
-		if !wordMap[word] {
-			wordMap[word] = true
-			uniqueWords = append(uniqueWords, word)
-		}
+		builder.WriteString(word)
+		builder.WriteString(" ")
 	}
 
-	return uniqueWords
+	checksum := sha256.Sum256([]byte(builder.String()))
+
+	return hex.EncodeToString(checksum[:])
 }
 
 func (g *Game) sortWords() {
