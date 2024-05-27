@@ -16,8 +16,14 @@ type Data struct {
 }
 
 type Game struct {
-	Words  []string `json:"words"`
-	Target string   `json:"target"`
+	Words    []string `json:"words"`
+	Target   string   `json:"target"`
+	PlayedBy User     `json:"played_by"`
+}
+
+type User struct {
+	Username   string `json:"username"`
+	TelegramID int64  `json:"telegram_id"`
 }
 
 func SaveGame(game *Game) {
@@ -56,9 +62,13 @@ func SaveData(data *Data) {
 	log.Info(fmt.Sprintf("games data saved to `%s`", Path))
 }
 
-func ConvertToGame(game *terminal.Game) *Game {
+func ConvertToGame(game *terminal.Game, username string, telegramID int64) *Game {
 	return &Game{
 		Words:  game.InitialWords,
 		Target: game.AvailableWords[0],
+		PlayedBy: User{
+			Username:   username,
+			TelegramID: telegramID,
+		},
 	}
 }

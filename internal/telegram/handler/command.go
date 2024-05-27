@@ -14,7 +14,8 @@ func (h *Handler) CommandStart(u tgbotapi.Update) {
 	content := "📟 <b>Yo, welcome to Terminal Helper!</b>\n\n" +
 		"This bot is developed to help you in @timetoterminal game.\n\n" +
 		"<b>WARNING!</b> Take a notice, that this is not a hack or something like that. Bot just removes improper words, based on your attempts. All this stuff you can do manually.\n\n" +
-		"The only thing, that can make your life a bit easier, words are sorted in such a way as to have the best chance of eliminating more words per attempt. So, its recommended to choose the <b>first (highest)</b> word in the list."
+		"The only thing, that can make your life a bit easier, words are sorted in such a way as to have the best chance of eliminating more words per attempt. So, its recommended to choose the <b>first (highest)</b> word in the list.\n\n" +
+		"Although there are still games where you may not be able to guess a given word even after 4 attempts, but they're pretty rare"
 	h.sendTextMessage(userID, content, GetMarkupNewGame())
 
 	h.stages[userID] = None
