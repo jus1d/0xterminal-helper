@@ -62,6 +62,8 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.CallbackContinueGame(u)
 		case query == "start-new-game":
 			b.handler.CallbackStartNewGame(u)
+		case query == "words-list":
+			b.handler.CallbackWordsList(u)
 		case strings.HasPrefix(query, "choose-word:"):
 			b.handler.CallbackChooseWord(u)
 		case strings.HasPrefix(query, "choose-guessed-letters:"):

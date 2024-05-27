@@ -12,7 +12,7 @@ func GetMarkupGameMenu() *tgbotapi.InlineKeyboardMarkup {
 			tgbotapi.NewInlineKeyboardButtonData("Continue", "game-continue"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Start new game", "start-new-game"),
+			tgbotapi.NewInlineKeyboardButtonData("New game", "start-new-game"),
 		),
 	)
 	return &markup
@@ -61,7 +61,7 @@ func GetMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
 	}
 
 	rows := make([][]tgbotapi.InlineKeyboardButton, 0)
-	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("None :c", fmt.Sprintf("choose-guessed-letters:%s:%d", word, 0))})
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("None", fmt.Sprintf("choose-guessed-letters:%s:%d", word, 0))})
 
 	rule := rules[len(word)-1]
 	i := 1
@@ -75,7 +75,11 @@ func GetMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
 		rows = append(rows, row)
 	}
 
-	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("All!", fmt.Sprintf("choose-guessed-letters:%s:%d", word, len(word)))})
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{tgbotapi.NewInlineKeyboardButtonData("All", fmt.Sprintf("choose-guessed-letters:%s:%d", word, len(word)))})
+
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("« Back", "words-list"),
+	))
 
 	markup := tgbotapi.NewInlineKeyboardMarkup(rows...)
 
@@ -104,7 +108,7 @@ func getHugeMarkupGuessedLetters(word string) *tgbotapi.InlineKeyboardMarkup {
 func GetMarkupNewGame() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Start new game", "start-new-game"),
+			tgbotapi.NewInlineKeyboardButtonData("New game", "start-new-game"),
 		),
 	)
 	return &markup

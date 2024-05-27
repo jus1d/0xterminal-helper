@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"terminal/internal/terminal"
 
@@ -20,8 +19,9 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 	switch stage {
 	case WaitingWordList:
 		words := strings.Split(u.Message.Text, "\n")
-		if len(words) == 1 {
-			h.sendTextMessage(userID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", words[0]), nil)
+
+		if len(words) < 6 {
+			h.sendTextMessage(userID, "<b>Word list can't be too short</b>\n\nSend me anotehr list", nil)
 			return
 		}
 
