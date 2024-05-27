@@ -19,7 +19,7 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 
 	switch stage {
 	case WaitingWordList:
-		words := terminal.RemoveTrashFromWordsList(strings.Split(u.Message.Text, "\n"))
+		words := terminal.RemoveTrashFromWordList(strings.Split(u.Message.Text, "\n"))
 
 		if len(words) < 6 {
 			h.sendTextMessage(userID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)

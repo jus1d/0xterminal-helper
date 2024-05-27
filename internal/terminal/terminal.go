@@ -25,7 +25,7 @@ type Attempt struct {
 }
 
 func New(words []string) (*Game, error) {
-	if !checkWordsLength(words) {
+	if !isWordsEqualLength(words) {
 		return nil, ErrDifferentWordsLength
 	}
 
@@ -34,18 +34,18 @@ func New(words []string) (*Game, error) {
 		AvailableWords: words,
 		Attempts:       make([]*Attempt, 0),
 	}
-	game.sortWords()
+	game.sortWordsBySexyIndex()
 
 	return game, nil
 }
 
-func (g *Game) CommitAttempt(attempt Attempt) {
+func (g *Game) SubmitAttempt(attempt Attempt) {
 	g.Attempts = append(g.Attempts, &attempt)
 	g.updateWords()
-	g.sortWords()
+	g.sortWordsBySexyIndex()
 }
 
-func RemoveTrashFromWordsList(words []string) []string {
+func RemoveTrashFromWordList(words []string) []string {
 	cleaned := make([]string, 0)
 	for _, word := range words {
 		if strings.Contains(word, "NaN") {
@@ -57,23 +57,6 @@ func RemoveTrashFromWordsList(words []string) []string {
 		cleaned = append(cleaned, word)
 	}
 	return slice.Unique(cleaned)
-}
-
-func (g *Game) updateWords() {
-	updated := make([]string, 0)
-	for _, word := range g.AvailableWords {
-		fits := true
-		for _, tried := range g.Attempts {
-			if !compareWords(word, tried.Word, tried.GuessedLetters) {
-				fits = false
-				break
-			}
-		}
-		if fits {
-			updated = append(updated, word)
-		}
-	}
-	g.AvailableWords = updated
 }
 
 func ComputeWordsHash(words []string) string {
@@ -90,7 +73,24 @@ func ComputeWordsHash(words []string) string {
 	return hex.EncodeToString(checksum[:])
 }
 
-func (g *Game) sortWords() {
+func (g *Game) updateWords() {
+	updated := make([]string, 0)
+	for _, word := range g.AvailableWords {
+		fits := true
+		for _, tried := range g.Attempts {
+			if !compareWordsMatchedLetters(word, tried.Word, tried.GuessedLetters) {
+				fits = false
+				break
+			}
+		}
+		if fits {
+			updated = append(updated, word)
+		}
+	}
+	g.AvailableWords = updated
+}
+
+func (g *Game) sortWordsBySexyIndex() {
 	sort.Slice(g.AvailableWords, func(i, j int) bool {
 		return countWordSexyIndex(g.AvailableWords[i], g.AvailableWords) < countWordSexyIndex(g.AvailableWords[j], g.AvailableWords)
 	})
@@ -123,7 +123,7 @@ func countWordSexyIndex(target string, words []string) int {
 	return sexyIndex
 }
 
-func compareWords(a string, b string, expected int) bool {
+func compareWordsMatchedLetters(a string, b string, expected int) bool {
 	return expected == countMatchedLetters(a, b)
 }
 
@@ -137,7 +137,7 @@ func countMatchedLetters(a, b string) int {
 	return value
 }
 
-func checkWordsLength(words []string) bool {
+func isWordsEqualLength(words []string) bool {
 	if len(words) == 0 {
 		return true
 	}
