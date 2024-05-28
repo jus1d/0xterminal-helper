@@ -13,7 +13,7 @@ type Record struct {
 	Content   string
 	Level     string
 	Error     error
-	Attrs     []*Attr
+	Attrs     []Attr
 }
 
 type Attr struct {
@@ -21,7 +21,7 @@ type Attr struct {
 	Value string
 }
 
-func Info(content string, attrs ...*Attr) {
+func Info(content string, attrs ...Attr) {
 	timestamp := time.Now()
 	record := Record{
 		Timestamp: timestamp,
@@ -33,7 +33,7 @@ func Info(content string, attrs ...*Attr) {
 	record.Write(os.Stdout)
 }
 
-func Warn(content string, attrs ...*Attr) {
+func Warn(content string, attrs ...Attr) {
 	record := Record{
 		Timestamp: time.Now(),
 		Content:   content,
@@ -43,7 +43,7 @@ func Warn(content string, attrs ...*Attr) {
 	record.Write(os.Stdout)
 }
 
-func Error(content string, err error, attrs ...*Attr) {
+func Error(content string, err error, attrs ...Attr) {
 	record := Record{
 		Timestamp: time.Now(),
 		Content:   content,
@@ -54,7 +54,7 @@ func Error(content string, err error, attrs ...*Attr) {
 	record.Write(os.Stdout)
 }
 
-func Fatal(content string, err error, attrs ...*Attr) {
+func Fatal(content string, err error, attrs ...Attr) {
 	record := Record{
 		Timestamp: time.Now(),
 		Content:   content,
@@ -80,22 +80,22 @@ func (r *Record) Write(out *os.File) {
 	fmt.Fprintln(out, json)
 }
 
-func WithString(key string, value string) *Attr {
-	return &Attr{
+func WithString(key string, value string) Attr {
+	return Attr{
 		Key:   key,
 		Value: fmt.Sprintf(`"%s"`, value),
 	}
 }
 
-func WithInt(key string, value int) *Attr {
-	return &Attr{
+func WithInt(key string, value int) Attr {
+	return Attr{
 		Key:   key,
 		Value: strconv.Itoa(value),
 	}
 }
 
-func WithInt64(key string, value int64) *Attr {
-	return &Attr{
+func WithInt64(key string, value int64) Attr {
+	return Attr{
 		Key:   key,
 		Value: strconv.FormatInt(value, 10),
 	}
