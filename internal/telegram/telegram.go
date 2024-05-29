@@ -1,34 +1,40 @@
 package telegram
 
 import (
+	"log/slog"
+	"os"
 	"strings"
 	"terminal/internal/config"
 	"terminal/internal/storage"
 	"terminal/internal/telegram/handler"
-	"terminal/pkg/log"
+	"terminal/pkg/log/sl"
+	"terminal/pkg/str"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Bot struct {
+	log     *slog.Logger
 	client  *tgbotapi.BotAPI
 	handler *handler.Handler
 }
 
-func New(conf config.Telegram, st storage.Storage) *Bot {
+func New(log *slog.Logger, conf config.Telegram, st storage.Storage) *Bot {
 	client, err := tgbotapi.NewBotAPI(conf.Token)
 	if err != nil {
-		log.Fatal("could not start the bot", err)
+		log.Error("failed to start the bot", sl.Err(err))
+		os.Exit(1)
 	}
 
 	return &Bot{
+		log:     log,
 		client:  client,
-		handler: handler.New(client, st),
+		handler: handler.New(log, client, st),
 	}
 }
 
 func (b *Bot) Run() {
-	log.Info("bot authorized into telegram API", log.WithString("account", b.client.Self.UserName))
+	b.log.Info("bot authorized into telegram API", slog.String("username", b.client.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -42,7 +48,7 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		log.Info("message recieved", log.WithString("author_username", u.Message.From.UserName), log.WithInt64("author_id", u.Message.From.ID), log.WithString("content", u.Message.Text))
+		b.log.Debug("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
 		switch u.Message.Text {
 		case "/start":
@@ -57,7 +63,7 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	}
 	if u.CallbackQuery != nil {
 		query := u.CallbackData()
-		log.Info("callback recieved", log.WithString("author_username", u.CallbackQuery.From.UserName), log.WithInt64("author_id", u.CallbackQuery.From.ID), log.WithString("query", query))
+		b.log.Debug("callback received", slog.String("query", query), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
 		switch {
 		case query == "game-continue":

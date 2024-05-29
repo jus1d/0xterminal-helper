@@ -11,7 +11,7 @@ type Storage interface {
 	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
 	GetUserByTelegramID(telegramID int64) (*User, error)
 	SaveGame(telegramID int64, words []string, target string) (*Game, error)
-	TryFindAnswer(words []string) string
+	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
 }
 

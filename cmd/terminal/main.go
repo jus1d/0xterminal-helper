@@ -1,16 +1,25 @@
 package main
 
 import (
+	"os"
 	"terminal/internal/config"
 	"terminal/internal/storage/postgres"
 	"terminal/internal/telegram"
+	"terminal/pkg/log"
+	"terminal/pkg/log/sl"
 )
 
 func main() {
 	conf := config.MustLoad()
 
-	storage := postgres.New(conf.Postgres)
+	logger := log.Init(conf.Env)
 
-	bot := telegram.New(conf.Telegram, storage)
+	storage, err := postgres.New(conf.Postgres)
+	if err != nil {
+		logger.Error("failed to start postgres database", sl.Err(err))
+		os.Exit(1)
+	}
+
+	bot := telegram.New(logger, conf.Telegram, storage)
 	bot.Run()
 }

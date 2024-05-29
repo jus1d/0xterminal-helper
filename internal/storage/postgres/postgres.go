@@ -8,7 +8,6 @@ import (
 	"terminal/internal/storage"
 	"terminal/internal/terminal"
 	"terminal/internal/terminal/dataset"
-	"terminal/pkg/log"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -19,20 +18,20 @@ type Storage struct {
 	db *sqlx.DB
 }
 
-func New(conf config.Postgres) *Storage {
+func New(conf config.Postgres) (*Storage, error) {
 	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		conf.Host, conf.Port, conf.User, conf.Name, conf.Password, conf.ModeSSL))
 	if err != nil {
-		log.Fatal("could not start postgres database", err)
+		return nil, err
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatal("no response from postgres database", err)
+		return nil, err
 	}
 
 	return &Storage{
 		db: db,
-	}
+	}, nil
 }
 
 func (s *Storage) CreateUser(telegramID int64, username string, firstname string, lastname string) (*storage.User, error) {
@@ -77,7 +76,7 @@ func (s *Storage) SaveGame(telegramID int64, words []string, target string) (*st
 	return &game, err
 }
 
-func (s *Storage) TryFindAnswer(words []string) string {
+func (s *Storage) TryFindAnswer(words []string) (string, error) {
 	wordsHash := terminal.ComputeWordsHash(words)
 
 	query := "SELECT target FROM games WHERE words_hash = $1"
@@ -85,11 +84,10 @@ func (s *Storage) TryFindAnswer(words []string) string {
 	var target string
 	err := s.db.QueryRow(query, wordsHash).Scan(&target)
 	if !errors.Is(err, sql.ErrNoRows) {
-		log.Error("could not get game", err)
-		return ""
+		return "", err
 	}
 
-	return target
+	return target, nil
 }
 
 func (s *Storage) GetDataset() (*dataset.Dataset, error) {
@@ -109,7 +107,7 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 		var words pq.StringArray
 		err := rows.Scan(&words, &game.Target, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
 		if err != nil {
-			log.Error("can't scan row", err)
+			return nil, err
 		}
 		game.Words = []string(words)
 
@@ -117,7 +115,7 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 	}
 
 	if err = rows.Err(); err != nil {
-		log.Error("something went wrong", err)
+		return nil, err
 	}
 
 	var data dataset.Dataset
