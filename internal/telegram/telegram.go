@@ -63,7 +63,7 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	}
 	if u.CallbackQuery != nil {
 		query := u.CallbackData()
-		b.log.Debug("callback received", slog.String("query", query), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
+		b.log.Debug("callback received", slog.String("query", query), slog.Int64("id", u.CallbackQuery.From.ID), slog.String("username", u.CallbackQuery.From.UserName))
 
 		switch {
 		case query == "game-continue":

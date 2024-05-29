@@ -83,11 +83,11 @@ func (s *Storage) TryFindAnswer(words []string) (string, error) {
 
 	var target string
 	err := s.db.QueryRow(query, wordsHash).Scan(&target)
-	if !errors.Is(err, sql.ErrNoRows) {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
 
-	return target, nil
+	return target, err
 }
 
 func (s *Storage) GetDataset() (*dataset.Dataset, error) {
