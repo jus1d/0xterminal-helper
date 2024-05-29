@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"terminal/internal/storage"
 	"terminal/internal/terminal"
 	"terminal/pkg/log"
 
@@ -15,16 +16,18 @@ const (
 )
 
 type Handler struct {
-	client *tgbotapi.BotAPI
-	games  map[int64]*terminal.Game
-	stages map[int64]Stage
+	client  *tgbotapi.BotAPI
+	storage storage.Storage
+	games   map[int64]*terminal.Game
+	stages  map[int64]Stage
 }
 
-func New(client *tgbotapi.BotAPI) *Handler {
+func New(client *tgbotapi.BotAPI, st storage.Storage) *Handler {
 	return &Handler{
-		client: client,
-		games:  make(map[int64]*terminal.Game, 0),
-		stages: make(map[int64]Stage, 0),
+		client:  client,
+		storage: st,
+		games:   make(map[int64]*terminal.Game, 0),
+		stages:  make(map[int64]Stage, 0),
 	}
 }
 
