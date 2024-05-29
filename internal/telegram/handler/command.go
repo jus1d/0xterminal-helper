@@ -65,7 +65,7 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 		return
 	}
 
-	// TODO: remove creating JSON file from storage to other package
+	// TODO(#11): remove creating JSON file from storage to other package
 	path := time.Now().Format("./dataset-02-01-2006.json")
 	err = h.storage.ParseGamesToJsonFile(path)
 	if err != nil {
