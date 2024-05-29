@@ -1,0 +1,12 @@
+env: "local" # or dev, local
+
+telegram:
+    token: "paste your telegram bot's token"
+
+postgres:
+    host: ""
+    port: ""
+    user: ""
+    name: ""
+    password: ""
+    sslmode: ""

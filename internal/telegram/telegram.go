@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"strings"
+	"terminal/internal/config"
 	"terminal/internal/telegram/handler"
 	"terminal/pkg/log"
 
@@ -13,8 +14,8 @@ type Bot struct {
 	handler *handler.Handler
 }
 
-func New(token string) *Bot {
-	client, err := tgbotapi.NewBotAPI(token)
+func New(conf config.Telegram) *Bot {
+	client, err := tgbotapi.NewBotAPI(conf.Token)
 	if err != nil {
 		log.Fatal("could not start the bot", err)
 	}

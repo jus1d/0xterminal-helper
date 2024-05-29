@@ -2,22 +2,17 @@ package main
 
 import (
 	"os"
+	"terminal/internal/config"
 	"terminal/internal/storage"
 	"terminal/internal/telegram"
 	"terminal/pkg/log"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	initStorage()
+	conf := config.MustLoad()
 
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("could not load `.env` file", err)
-	}
-
-	token := os.Getenv("TOKEN")
-	bot := telegram.New(token)
+	bot := telegram.New(conf.Telegram)
 	bot.Run()
 }
 

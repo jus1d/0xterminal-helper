@@ -5,3 +5,7 @@ bin/
 .env
 *.json
 *.yaml
+
+# Ignore storage files
+*.db
+.database/
