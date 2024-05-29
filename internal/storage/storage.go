@@ -2,6 +2,8 @@ package storage
 
 import "time"
 
+// TODO(#9): add custom errors to storage functions
+
 type Storage interface {
 	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
 	GetUserByTelegramID(telegramID int64) (*User, error)
