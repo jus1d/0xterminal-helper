@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"terminal/internal/config"
 	"terminal/internal/storage"
 	"terminal/internal/terminal"
@@ -87,4 +89,50 @@ func (s *Storage) TryFindAnswer(words []string) string {
 	}
 
 	return target
+}
+
+func (s *Storage) ParseGamesToJsonFile(path string) error {
+	query := "SELECT games.words, games.target, games.words_hash, games.created_at, users.username, users.telegram_id FROM games JOIN users ON games.telegram_id = users.telegram_id"
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	var games []storage.GameDTO
+
+	for rows.Next() {
+		var game storage.GameDTO
+		var words pq.StringArray
+		err := rows.Scan(&words, &game.Target, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
+		if err != nil {
+			log.Error("can't scan row", err)
+		}
+		game.Words = []string(words)
+
+		games = append(games, game)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Error("something went wrong", err)
+	}
+
+	var data storage.GamesDTO
+
+	data.Games = games
+	data.TotalGames = len(games)
+
+	jsonData, err := json.MarshalIndent(data, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(path, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
