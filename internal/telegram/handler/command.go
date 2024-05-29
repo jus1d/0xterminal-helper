@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"os"
+	"terminal/internal/terminal/dataset"
 	"terminal/pkg/log"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -65,12 +65,18 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 		return
 	}
 
-	// TODO(#11): remove creating JSON file from storage to other package
-	path := time.Now().Format("./dataset-02-01-2006.json")
-	err = h.storage.ParseGamesToJsonFile(path)
+	data, err := h.storage.GetDataset()
 	if err != nil {
+		log.Error("could not build dataset", err)
 		h.sendTextMessage(userID, "🚨 <b>Failed to compose dataset</b>", nil)
-		log.Error("failed to compose dataset", err)
+		return
+	}
+
+	// TODO(#11): remove creating JSON file from storage to other package
+	path, err := dataset.ExportDatasetToJSON(data)
+	if err != nil {
+		log.Error("could not export dataset to JSON", err)
+		h.sendTextMessage(userID, "🚨 <b>Failed to compose dataset</b>", nil)
 		return
 	}
 

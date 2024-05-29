@@ -2,13 +2,12 @@ package postgres
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"terminal/internal/config"
 	"terminal/internal/storage"
 	"terminal/internal/terminal"
+	"terminal/internal/terminal/dataset"
 	"terminal/pkg/log"
 
 	"github.com/jmoiron/sqlx"
@@ -93,20 +92,20 @@ func (s *Storage) TryFindAnswer(words []string) string {
 	return target
 }
 
-func (s *Storage) ParseGamesToJsonFile(path string) error {
+func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 	query := "SELECT games.words, games.target, games.words_hash, games.created_at, users.username, users.telegram_id FROM games JOIN users ON games.telegram_id = users.telegram_id"
 
 	rows, err := s.db.Query(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer rows.Close()
 
-	var games []storage.GameDTO
+	var games []dataset.Game
 
 	for rows.Next() {
-		var game storage.GameDTO
+		var game dataset.Game
 		var words pq.StringArray
 		err := rows.Scan(&words, &game.Target, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
 		if err != nil {
@@ -121,20 +120,10 @@ func (s *Storage) ParseGamesToJsonFile(path string) error {
 		log.Error("something went wrong", err)
 	}
 
-	var data storage.GamesDTO
+	var data dataset.Dataset
 
 	data.Games = games
 	data.TotalGames = len(games)
 
-	jsonData, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path, jsonData, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &data, nil
 }
