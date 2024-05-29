@@ -72,7 +72,6 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 		return
 	}
 
-	// TODO(#11): remove creating JSON file from storage to other package
 	path, err := dataset.ExportDatasetToJSON(data)
 	if err != nil {
 		log.Error("could not export dataset to JSON", err)
