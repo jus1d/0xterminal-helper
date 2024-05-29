@@ -65,7 +65,8 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 		return
 	}
 
-	path := time.Now().Format("dataset-02-01-2006.json")
+	// TODO: remove creating JSON file from storage to other package
+	path := time.Now().Format("./dataset-02-01-2006.json")
 	err = h.storage.ParseGamesToJsonFile(path)
 	if err != nil {
 		h.sendTextMessage(userID, "🚨 <b>Failed to compose dataset</b>", nil)
@@ -91,4 +92,6 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 	if err != nil {
 		log.Info("dataset sent", log.WithInt64("id", userID), log.WithString("username", u.Message.From.UserName))
 	}
+
+	os.Remove(path)
 }
