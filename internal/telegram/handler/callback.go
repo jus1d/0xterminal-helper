@@ -111,7 +111,6 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 
 		// we'll assume that game is kinda spam, if initial words is less than 6
 		if len(game.InitialWords) >= 6 {
-			// TODO(#10): add initial words sorting
 			h.storage.SaveGame(userID, game.InitialWords, game.AvailableWords[0])
 		}
 		return
