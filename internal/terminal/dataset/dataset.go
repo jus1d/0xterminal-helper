@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// TODO(#14): add sorting by date for games
+
 type Dataset struct {
 	TotalGames int    `json:"total_games"`
 	Games      []Game `json:"games"`
