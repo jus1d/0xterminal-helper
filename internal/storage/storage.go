@@ -36,7 +36,7 @@ type Game struct {
 
 type GamesDTO struct {
 	TotalGames int       `json:"total_games"`
-	Games      []GameDTO `json:"game"`
+	Games      []GameDTO `json:"games"`
 }
 
 type GameDTO struct {

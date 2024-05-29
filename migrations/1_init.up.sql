@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS users (
     id uuid DEFAULT uuid_generate_v4() NOT NULL UNIQUE ,
     telegram_id bigint NOT NULL UNIQUE,
