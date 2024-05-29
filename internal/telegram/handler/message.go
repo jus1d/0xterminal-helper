@@ -42,11 +42,10 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 		h.games[userID] = game
 		h.stages[userID] = None
 
-		// TODO:
-		// answer := storage.TryFindAnswer(words)
-		// if answer != "" {
-		// 	h.sendTextMessage(userID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
-		// }
+		answer := h.storage.TryFindAnswer(words)
+		if answer != "" {
+			h.sendTextMessage(userID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
+		}
 
 		h.sendTextMessage(userID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[userID].AvailableWords))
 	case None:

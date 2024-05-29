@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"terminal/internal/config"
 	"terminal/internal/storage"
@@ -70,4 +72,19 @@ func (s *Storage) SaveGame(telegramID int64, words []string, target string) (*st
 	err := row.Scan(&game.ID, &game.TelegramID, &game.Words, &game.Target, &game.WordsHash, &game.CreatedAt)
 
 	return &game, err
+}
+
+func (s *Storage) TryFindAnswer(words []string) string {
+	wordsHash := terminal.ComputeWordsHash(words)
+
+	query := "SELECT target FROM games WHERE words_hash = $1"
+
+	var target string
+	err := s.db.QueryRow(query, wordsHash).Scan(&target)
+	if !errors.Is(err, sql.ErrNoRows) {
+		log.Error("could not get game", err)
+		return ""
+	}
+
+	return target
 }
