@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"terminal/pkg/log"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -64,7 +65,15 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 		return
 	}
 
-	file, err := os.Open("./storage/data.json")
+	path := time.Now().Format("dataset-02-01-2006.json")
+	err = h.storage.ParseGamesToJsonFile(path)
+	if err != nil {
+		h.sendTextMessage(userID, "🚨 <b>Failed to compose dataset</b>", nil)
+		log.Error("failed to compose dataset", err)
+		return
+	}
+
+	file, err := os.Open(path)
 	if err != nil {
 		log.Error("could not open file", err)
 		h.sendTextMessage(userID, "Could not send file", nil)
