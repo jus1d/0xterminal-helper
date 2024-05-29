@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// TODO(#12): migrate to log/slog with pretty logging for local environment
+
 type Record struct {
 	Timestamp time.Time
 	Content   string
