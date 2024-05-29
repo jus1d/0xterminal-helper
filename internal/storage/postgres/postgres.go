@@ -71,7 +71,9 @@ func (s *Storage) SaveGame(telegramID int64, words []string, target string) (*st
 	}
 
 	var game storage.Game
-	err := row.Scan(&game.ID, &game.TelegramID, &game.Words, &game.Target, &game.WordsHash, &game.CreatedAt)
+	var pqWords pq.StringArray
+	err := row.Scan(&game.ID, &game.TelegramID, &pqWords, &game.Target, &game.WordsHash, &game.CreatedAt)
+	game.Words = words
 
 	return &game, err
 }
