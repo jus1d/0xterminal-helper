@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) TextMessage(u tgbotapi.Update) {
-	author := u.CallbackQuery.From
+	author := u.Message.From
 	log := h.log.With(
 		slog.String("op", "handler.TextMessage"),
 		slog.String("username", author.UserName),
