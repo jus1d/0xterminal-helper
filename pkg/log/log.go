@@ -1,102 +1,37 @@
 package log
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
-	"strconv"
-	"strings"
-	"time"
+	"terminal/internal/config"
+	"terminal/pkg/log/prettyslog"
 )
 
-type Record struct {
-	Timestamp time.Time
-	Content   string
-	Level     string
-	Error     error
-	Attrs     []Attr
-}
+// Init initialize a *slog.Logger instance for logging, without pretty formatting for production and development builds.
+func Init(env string) *slog.Logger {
+	var log *slog.Logger
 
-type Attr struct {
-	Key   string
-	Value string
-}
-
-func Info(content string, attrs ...Attr) {
-	timestamp := time.Now()
-	record := Record{
-		Timestamp: timestamp,
-		Content:   content,
-		Level:     "INFO",
-		Attrs:     attrs,
+	switch env {
+	case config.EnvLocal:
+		log = InitPretty()
+	case config.EnvDevelopment:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case config.EnvProduction:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
-	record.Write(os.Stdout)
+	return log
 }
 
-func Warn(content string, attrs ...Attr) {
-	record := Record{
-		Timestamp: time.Now(),
-		Content:   content,
-		Level:     "WARN",
-		Attrs:     attrs,
+// InitPretty initialize a *slog.Logger instance for logging, with pretty formatting for local builds.
+func InitPretty() *slog.Logger {
+	opts := prettyslog.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
 	}
-	record.Write(os.Stdout)
-}
 
-func Error(content string, err error, attrs ...Attr) {
-	record := Record{
-		Timestamp: time.Now(),
-		Content:   content,
-		Level:     "ERROR",
-		Error:     err,
-		Attrs:     attrs,
-	}
-	record.Write(os.Stdout)
-}
+	prettyHandler := opts.NewPrettyHandler(os.Stdout)
 
-func Fatal(content string, err error, attrs ...Attr) {
-	record := Record{
-		Timestamp: time.Now(),
-		Content:   content,
-		Level:     "FATAL",
-		Error:     err,
-		Attrs:     attrs,
-	}
-	record.Write(os.Stdout)
-	os.Exit(1)
-}
-
-func (r *Record) Write(out *os.File) {
-	json := fmt.Sprintf(`{"time":"%s","level":"%s","message":"%s"`,
-		r.Timestamp.Format("2006-01-02T15:04:05.999999999Z"), r.Level, r.Content)
-
-	if r.Error != nil {
-		json += fmt.Sprintf(`,"error":"%s"`, r.Error.Error())
-	}
-	for _, attr := range r.Attrs {
-		json += fmt.Sprintf(`,"%s":%s`, attr.Key, strings.Replace(attr.Value, "\n", "\\n", -1))
-	}
-	json += `}`
-	fmt.Fprintln(out, json)
-}
-
-func WithString(key string, value string) Attr {
-	return Attr{
-		Key:   key,
-		Value: fmt.Sprintf(`"%s"`, value),
-	}
-}
-
-func WithInt(key string, value int) Attr {
-	return Attr{
-		Key:   key,
-		Value: strconv.Itoa(value),
-	}
-}
-
-func WithInt64(key string, value int64) Attr {
-	return Attr{
-		Key:   key,
-		Value: strconv.FormatInt(value, 10),
-	}
+	return slog.New(prettyHandler)
 }
