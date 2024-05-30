@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"terminal/internal/config"
@@ -18,11 +19,12 @@ func Init(env string) *slog.Logger {
 	case config.EnvDevelopment:
 		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	case config.EnvProduction:
-		if _, err := os.Stat("./logs"); os.IsNotExist(err) {
-			os.Mkdir("./logs", 0755)
+		logsDir := "./.logs"
+		if _, err := os.Stat(logsDir); os.IsNotExist(err) {
+			os.Mkdir(logsDir, 0755)
 		}
 
-		out, _ := os.OpenFile(time.Now().Format("./logs/02-01-2006.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		out, _ := os.OpenFile(time.Now().Format(fmt.Sprintf("%s/02-01-2006.log", logsDir)), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		log = slog.New(slog.NewJSONHandler(out, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
