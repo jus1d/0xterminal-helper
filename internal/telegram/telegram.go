@@ -50,6 +50,7 @@ func (b *Bot) Run() {
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
 		if u.Message.Photo != nil {
+			b.log.Debug("image received", slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 			b.handler.PhotoMessage(u)
 		} else {
 			b.log.Debug("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))

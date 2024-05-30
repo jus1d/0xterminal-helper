@@ -3,6 +3,7 @@ package ocr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -105,6 +106,9 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return "", err
 	}
 
+	if response.ParsedResults[0].ErorrMessage != "" {
+		return response.ParsedResults[0].ParsedText, fmt.Errorf("ocr.extractTextFromImage: %s", response.ParsedResults[0].ErorrMessage)
+	}
 	return response.ParsedResults[0].ParsedText, nil
 }
 
