@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// TODO: refacktor this package. cleanup
+// TODO(#17): refacktor this package. cleanup
 
 type Client struct {
 	token string
