@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log/slog"
+	"terminal/internal/ocr"
 	"terminal/internal/storage"
 	"terminal/internal/terminal"
 	"terminal/pkg/log/sl"
@@ -20,15 +21,17 @@ type Handler struct {
 	log     *slog.Logger
 	client  *tgbotapi.BotAPI
 	storage storage.Storage
+	ocr     *ocr.Client
 	games   map[int64]*terminal.Game
 	stages  map[int64]Stage
 }
 
-func New(logger *slog.Logger, client *tgbotapi.BotAPI, st storage.Storage) *Handler {
+func New(logger *slog.Logger, client *tgbotapi.BotAPI, st storage.Storage, o *ocr.Client) *Handler {
 	return &Handler{
 		log:     logger,
 		client:  client,
 		storage: st,
+		ocr:     o,
 		games:   make(map[int64]*terminal.Game, 0),
 		stages:  make(map[int64]Stage, 0),
 	}

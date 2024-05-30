@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"terminal/internal/config"
+	"terminal/internal/ocr"
 	"terminal/internal/storage/postgres"
 	"terminal/internal/telegram"
 	"terminal/pkg/log"
@@ -20,6 +21,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	bot := telegram.New(logger, conf.Telegram, storage)
+	bot := telegram.New(logger, conf.Telegram, storage, ocr.New(conf.OCR.Token))
 	bot.Run()
 }

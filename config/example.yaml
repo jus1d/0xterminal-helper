@@ -1,4 +1,4 @@
-env: "local" # or dev, local
+env: "local" # local | dev | prod
 
 telegram:
     token: "paste your telegram bot's token"
@@ -10,3 +10,6 @@ postgres:
     name: ""
     password: ""
     sslmode: ""
+
+ocr:
+    token: "paste your ocr.space api token"

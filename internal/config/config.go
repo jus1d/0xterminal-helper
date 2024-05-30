@@ -14,16 +14,20 @@ const (
 	EnvProduction  = "prod"
 )
 
+// Config combine all sub-configs structures
 type Config struct {
 	Env      string   `yaml:"env" env-required:"true"`
 	Telegram Telegram `yaml:"telegram"`
 	Postgres Postgres `yaml:"postgres"`
+	OCR      OCR      `yaml:"ocr"`
 }
 
+// Telegram represents structure with credentials for Telegram bot connection
 type Telegram struct {
 	Token string `yaml:"token"`
 }
 
+// Pstgres represents structure with credentials for PostgreSQL database
 type Postgres struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
@@ -31,6 +35,11 @@ type Postgres struct {
 	Name     string `yaml:"name"`
 	Password string `yaml:"password"`
 	ModeSSL  string `yaml:"sslmode"`
+}
+
+// OCR represents structure with credentials for OCR service (ocr.space currently)
+type OCR struct {
+	Token string `yaml:"token"`
 }
 
 // MustLoad loads config to a new Config instance and return it's pointer.

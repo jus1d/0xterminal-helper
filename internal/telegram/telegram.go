@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"terminal/internal/config"
+	"terminal/internal/ocr"
 	"terminal/internal/storage"
 	"terminal/internal/telegram/handler"
 	"terminal/pkg/log/sl"
@@ -19,7 +20,7 @@ type Bot struct {
 	handler *handler.Handler
 }
 
-func New(log *slog.Logger, conf config.Telegram, st storage.Storage) *Bot {
+func New(log *slog.Logger, conf config.Telegram, st storage.Storage, o *ocr.Client) *Bot {
 	client, err := tgbotapi.NewBotAPI(conf.Token)
 	if err != nil {
 		log.Error("failed to start the bot", sl.Err(err))
@@ -29,7 +30,7 @@ func New(log *slog.Logger, conf config.Telegram, st storage.Storage) *Bot {
 	return &Bot{
 		log:     log,
 		client:  client,
-		handler: handler.New(log, client, st),
+		handler: handler.New(log, client, st, o),
 	}
 }
 
@@ -48,17 +49,21 @@ func (b *Bot) Run() {
 
 func (b *Bot) handleUpdate(u tgbotapi.Update) {
 	if u.Message != nil {
-		b.log.Debug("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
+		if u.Message.Photo != nil {
+			b.handler.PhotoMessage(u)
+		} else {
+			b.log.Debug("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
-		switch u.Message.Text {
-		case "/start":
-			b.handler.CommandStart(u)
-		case "/newgame":
-			b.handler.CommandGame(u)
-		case "/dataset":
-			b.handler.CommandDataset(u)
-		default:
-			b.handler.TextMessage(u)
+			switch u.Message.Text {
+			case "/start":
+				b.handler.CommandStart(u)
+			case "/newgame":
+				b.handler.CommandGame(u)
+			case "/dataset":
+				b.handler.CommandDataset(u)
+			default:
+				b.handler.TextMessage(u)
+			}
 		}
 	}
 	if u.CallbackQuery != nil {
