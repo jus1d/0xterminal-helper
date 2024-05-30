@@ -71,12 +71,22 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 	}
 
 	if len(words) < 6 {
+		content := "<b>Recognized words:</b>\n\n"
+		for _, word := range words {
+			content += fmt.Sprintf("<code>%s</code>\n", word)
+		}
+		h.sendTextMessage(author.ID, content, nil)
 		h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)
 		return
 	}
 
 	game, err := terminal.New(words)
 	if errors.Is(err, terminal.ErrDifferentWordsLength) {
+		content := "<b>Recognized words:</b>\n\n"
+		for _, word := range words {
+			content += fmt.Sprintf("<code>%s</code>\n", word)
+		}
+		h.sendTextMessage(author.ID, content, nil)
 		h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list should only consist of words of the same length</b>\n\nSend me list of words in your $TERMINAL game", nil)
 		return
 	}

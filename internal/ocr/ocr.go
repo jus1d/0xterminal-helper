@@ -3,6 +3,7 @@ package ocr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-// TODO: refacktor this package. cleanup
+// TODO(#17): refacktor this package. cleanup
 
 type Client struct {
 	token string
@@ -105,6 +106,9 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return "", err
 	}
 
+	if response.ParsedResults[0].ErorrMessage != "" {
+		return response.ParsedResults[0].ParsedText, fmt.Errorf("ocr.extractTextFromImage: %s", response.ParsedResults[0].ErorrMessage)
+	}
 	return response.ParsedResults[0].ParsedText, nil
 }
 
