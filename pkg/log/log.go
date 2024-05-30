@@ -5,6 +5,7 @@ import (
 	"os"
 	"terminal/internal/config"
 	"terminal/pkg/log/prettyslog"
+	"time"
 )
 
 // Init initialize a *slog.Logger instance for logging, without pretty formatting for production and development builds.
@@ -17,7 +18,12 @@ func Init(env string) *slog.Logger {
 	case config.EnvDevelopment:
 		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	case config.EnvProduction:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+		if _, err := os.Stat("./logs"); os.IsNotExist(err) {
+			os.Mkdir("./logs", 0755)
+		}
+
+		out, _ := os.OpenFile(time.Now().Format("./logs/02-01-2006.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		log = slog.New(slog.NewJSONHandler(out, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
 	return log

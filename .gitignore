@@ -9,3 +9,7 @@
 # Ignore storage files
 *.db
 .database/
+
+# Ignore log files
+logs/
+*.log
