@@ -29,7 +29,7 @@ func main() {
 
 	storage, err := postgres.New(conf.Postgres)
 	if err != nil {
-		logger.Error("failed to start postgres database", sl.Err(err))
+		logger.Error("failed to connect to postgres database", sl.Err(err))
 		os.Exit(1)
 	}
 
