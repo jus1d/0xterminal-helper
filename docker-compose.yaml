@@ -20,5 +20,3 @@ services:
             - ./.logs/:/app/.logs
         environment:
             - CONFIG_PATH
-        ports:
-            - "80:8888"
