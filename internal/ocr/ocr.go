@@ -121,7 +121,6 @@ func extractWords(text string) []string {
 		word := strings.TrimSpace(line)
 
 		if !isWord(word) {
-			fmt.Printf("not a word: %s\n", word)
 			continue
 		}
 
