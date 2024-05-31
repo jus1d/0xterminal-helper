@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -52,7 +53,11 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 
 		answer, err := h.storage.TryFindAnswer(words)
 		if err != nil {
-			log.Error("could not get answer from database", err)
+			if errors.Is(err, sql.ErrNoRows) {
+				log.Info("game with sent word list was not found")
+			} else {
+				log.Error("could not get answer from database", sl.Err(err))
+			}
 		}
 		if answer != "" {
 			h.sendTextMessage(author.ID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
