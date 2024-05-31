@@ -79,8 +79,12 @@ func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 		return
 	}
 
-	game := h.games[author.ID]
-	h.editMessage(author.ID, u.CallbackQuery.Message.MessageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	game, exists := h.games[author.ID]
+	if !exists {
+		h.editMessage(author.ID, messageID, "<b>Use /newgame or button to start new game</b>", GetMarkupNewGame())
+		return
+	}
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {

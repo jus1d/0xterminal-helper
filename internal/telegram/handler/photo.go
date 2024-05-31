@@ -23,6 +23,8 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
 
+	h.sendTextMessage(author.ID, "<b>To improve the quality of image recognition, please disable the effects in $TERMINAL\n\n</b>$TERMINAL -> settings -> effects -> turn off", nil)
+
 	stage, exists := h.stages[author.ID]
 	if !exists {
 		h.stages[author.ID] = None
