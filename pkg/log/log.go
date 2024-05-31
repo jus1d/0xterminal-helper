@@ -24,7 +24,7 @@ func Init(env string) *slog.Logger {
 			os.Mkdir(logsDir, 0755)
 		}
 
-		out, _ := os.OpenFile(time.Now().Format(fmt.Sprintf("%s/02-01-2006.log", logsDir)), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		out, _ := os.OpenFile(time.Now().Format(fmt.Sprintf("%s/%s-02-01-2006.log", logsDir, env)), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		log = slog.New(slog.NewJSONHandler(out, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
