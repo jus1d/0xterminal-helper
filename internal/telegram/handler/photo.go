@@ -105,7 +105,7 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		h.sendTextMessage(author.ID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
 	}
 
-	h.sendTextMessage(author.ID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords))
+	h.sendTextMessage(author.ID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(words)), GetMarkupWords(h.games[author.ID].AvailableWords))
 }
 
 func downloadFile(filepath string, url string) error {

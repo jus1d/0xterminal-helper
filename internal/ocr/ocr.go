@@ -121,6 +121,7 @@ func extractWords(text string) []string {
 		word := strings.TrimSpace(line)
 
 		if !isWord(word) {
+			fmt.Printf("not a word: %s\n", word)
 			continue
 		}
 
@@ -159,7 +160,7 @@ func filterWords(words []string, correctLength int) []string {
 }
 
 func isWord(word string) bool {
-	if len(word) < 6 {
+	if len(word) < 4 {
 		return false
 	}
 
