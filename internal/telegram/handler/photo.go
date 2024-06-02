@@ -36,7 +36,6 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		return
 	}
 
-	// stage == WaitingWordList
 	photo := u.Message.Photo[len(u.Message.Photo)-1]
 
 	fileConfig := tgbotapi.FileConfig{FileID: photo.FileID}

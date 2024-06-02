@@ -21,13 +21,6 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
 
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("failed to get user from database", sl.Err(err))
-		h.sendTextMessage(author.ID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
-		return
-	}
-
 	stage, exists := h.stages[author.ID]
 	if !exists {
 		h.stages[author.ID] = None

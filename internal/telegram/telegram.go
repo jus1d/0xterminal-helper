@@ -43,7 +43,7 @@ func (b *Bot) Run() {
 	updates := b.client.GetUpdatesChan(u)
 
 	for update := range updates {
-		b.handleUpdate(update)
+		go b.handleUpdate(update)
 	}
 }
 
@@ -57,22 +57,24 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			log.Info("image received", slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
 			b.handler.PhotoMessage(u)
-		} else {
-			log.Info("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
-
-			switch u.Message.Text {
-			case "/start":
-				b.handler.CommandStart(u)
-			case "/newgame":
-				b.handler.CommandGame(u)
-			case "/dataset":
-				b.handler.CommandDataset(u)
-			case "/dailyreport":
-				b.handler.CommandDailyReport(u)
-			default:
-				b.handler.TextMessage(u)
-			}
+			return
 		}
+
+		log.Info("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
+
+		switch u.Message.Text {
+		case "/start":
+			b.handler.CommandStart(u)
+		case "/newgame":
+			b.handler.CommandGame(u)
+		case "/dataset":
+			b.handler.CommandDataset(u)
+		case "/dailyreport":
+			b.handler.CommandDailyReport(u)
+		default:
+			b.handler.TextMessage(u)
+		}
+
 	}
 	if u.CallbackQuery != nil {
 		query := u.CallbackData()
