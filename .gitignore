@@ -1,11 +1,16 @@
-# Ignore binary files
+# Ignore binary & output files
 .bin/
 
-# Ignore environment and config files
-.env
-*.json
-*.yaml
-
 # Ignore storage files
-*.db
 .database/
+
+# Ignore config files
+.env
+config/*.yaml
+
+# Ignore log files
+*.log
+.logs/
+
+# Ignore folder with temporary files
+.temp/

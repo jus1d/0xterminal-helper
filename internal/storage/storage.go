@@ -3,16 +3,24 @@ package storage
 import (
 	"terminal/internal/terminal/dataset"
 	"time"
+
+	"errors"
 )
 
 // TODO(#9): add custom errors to storage functions
 
+var (
+	ErrUserNotFound      = errors.New("0xterminal.storage: user not found")
+	ErrUserAlreadyExists = errors.New("0xterminal.storage: user already exists")
+)
+
 type Storage interface {
-	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
+	SaveUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
 	GetUserByTelegramID(telegramID int64) (*User, error)
 	SaveGame(telegramID int64, words []string, target string) (*Game, error)
 	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
+	GetDailyReport() (*DailyReport, error)
 }
 
 const (
@@ -37,4 +45,14 @@ type Game struct {
 	Target     string    `db:"target"`
 	WordsHash  string    `db:"words_hash"`
 	CreatedAt  time.Time `db:"created_at"`
+}
+
+type DailyReport struct {
+	Stats       []DailyUserStat
+	JoinedUsers []string
+}
+
+type DailyUserStat struct {
+	Username    string
+	GamesPlayed int
 }

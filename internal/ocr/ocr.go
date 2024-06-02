@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-// TODO(#17): refacktor this package. cleanup
-
 type Client struct {
 	token string
 }
@@ -37,18 +35,13 @@ func (c *Client) ExtractWords(filepath string) ([]string, error) {
 		return nil, err
 	}
 
-	words := extractWords(text)
+	words := findWords(text)
 
-	correctLength := findCorrectLength(words)
-
-	filteredWords := filterWords(words, correctLength)
-	return filteredWords, nil
+	return words, nil
 }
 
 func (c *Client) extractTextFromImage(path string) (string, error) {
 	endpoint := "https://api.ocr.space/Parse/Image"
-	language := "eng"
-	isOverlayRequired := "true"
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -72,8 +65,8 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return "", err
 	}
 
-	writer.WriteField("language", language)
-	writer.WriteField("isOverlayRequired", isOverlayRequired)
+	writer.WriteField("language", "eng")
+	writer.WriteField("isOverlayRequired", "true")
 
 	err = writer.Close()
 	if err != nil {
@@ -112,7 +105,7 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 	return response.ParsedResults[0].ParsedText, nil
 }
 
-func extractWords(text string) []string {
+func findWords(text string) []string {
 	words := make([]string, 0)
 
 	lines := strings.Split(text, "\r\n")
@@ -126,6 +119,10 @@ func extractWords(text string) []string {
 
 		words = append(words, word)
 	}
+
+	correctLength := findCorrectLength(words)
+	words = filterWordsByLength(words, correctLength)
+
 	return words
 }
 
@@ -148,7 +145,7 @@ func findCorrectLength(words []string) int {
 	return correctLength
 }
 
-func filterWords(words []string, correctLength int) []string {
+func filterWordsByLength(words []string, correctLength int) []string {
 	var filteredWords []string
 	for _, word := range words {
 		if len(word) == correctLength {
@@ -159,10 +156,12 @@ func filterWords(words []string, correctLength int) []string {
 }
 
 func isWord(word string) bool {
-	if len(word) < 6 {
+	// minimal word's length in TERMINAL is 4
+	if len(word) < 4 {
 		return false
 	}
 
+	// in TERMINAL we need only words, that contains only lowercase english letters
 	for _, char := range word {
 		if char < 'a' || char > 'z' {
 			return false

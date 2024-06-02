@@ -23,6 +23,8 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
 
+	h.sendTextMessage(author.ID, "<b>To improve the quality of image recognition, please disable the effects in $TERMINAL\n\n</b>$TERMINAL -> settings -> effects -> turn off", nil)
+
 	stage, exists := h.stages[author.ID]
 	if !exists {
 		h.stages[author.ID] = None
@@ -34,7 +36,6 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		return
 	}
 
-	// stage == WaitingWordList
 	photo := u.Message.Photo[len(u.Message.Photo)-1]
 
 	fileConfig := tgbotapi.FileConfig{FileID: photo.FileID}
@@ -105,7 +106,7 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		h.sendTextMessage(author.ID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
 	}
 
-	h.sendTextMessage(author.ID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords))
+	h.sendTextMessage(author.ID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(words)), GetMarkupWords(h.games[author.ID].AvailableWords))
 }
 
 func downloadFile(filepath string, url string) error {

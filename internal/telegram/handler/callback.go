@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
+	"terminal/internal/storage"
 	"terminal/internal/terminal"
 	"terminal/pkg/log/sl"
 
@@ -13,21 +15,7 @@ import (
 
 func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 	author := u.CallbackQuery.From
-	log := h.log.With(
-		slog.String("op", "handler.CallbackContinueGame"),
-		slog.String("username", author.UserName),
-		slog.String("id", strconv.FormatInt(author.ID, 10)),
-		slog.String("query", u.CallbackData()),
-	)
-
 	messageID := u.CallbackQuery.Message.MessageID
-
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("could not get user from database", sl.Err(err))
-		h.editMessage(author.ID, messageID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
-		return
-	}
 
 	game, exists := h.games[author.ID]
 	if !exists {
@@ -40,21 +28,6 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
 	author := u.CallbackQuery.From
-	log := h.log.With(
-		slog.String("op", "handler.CallbackStartNewGame"),
-		slog.String("username", author.UserName),
-		slog.String("id", strconv.FormatInt(author.ID, 10)),
-		slog.String("query", u.CallbackData()),
-	)
-
-	messageID := u.CallbackQuery.Message.MessageID
-
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("failed to get user from database", sl.Err(err))
-		h.editMessage(author.ID, messageID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
-		return
-	}
 
 	h.stages[author.ID] = WaitingWordList
 	delete(h.games, author.ID)
@@ -63,47 +36,23 @@ func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
 
 func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 	author := u.CallbackQuery.From
-	log := h.log.With(
-		slog.String("op", "handler.CallbackWordsList"),
-		slog.String("username", author.UserName),
-		slog.String("id", strconv.FormatInt(author.ID, 10)),
-		slog.String("query", u.CallbackData()),
-	)
-
 	messageID := u.CallbackQuery.Message.MessageID
 
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("failed to get user from database", sl.Err(err))
-		h.editMessage(author.ID, messageID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
+	game, exists := h.games[author.ID]
+	if !exists {
+		h.editMessage(author.ID, messageID, "<b>Use /newgame or button to start new game</b>", GetMarkupNewGame())
 		return
 	}
-
-	game := h.games[author.ID]
-	h.editMessage(author.ID, u.CallbackQuery.Message.MessageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
 	author := u.CallbackQuery.From
-	log := h.log.With(
-		slog.String("op", "handler.CallbackChooseWord"),
-		slog.String("username", author.UserName),
-		slog.String("id", strconv.FormatInt(author.ID, 10)),
-		slog.String("query", u.CallbackData()),
-	)
-
 	messageID := u.CallbackQuery.Message.MessageID
-
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("failed to get user from database", sl.Err(err))
-		h.editMessage(author.ID, messageID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
-		return
-	}
 
 	parts := strings.Split(u.CallbackData(), ":")
 	word := parts[1]
-	h.editMessage(author.ID, u.CallbackQuery.Message.MessageID, fmt.Sprintf("<b>How many guessed letters in word</b> <code>%s</code>?", word), GetMarkupGuessedLetters(word))
+	h.editMessage(author.ID, messageID, fmt.Sprintf("<b>How many guessed letters in word</b> <code>%s</code>?", word), GetMarkupGuessedLetters(word))
 }
 
 func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
@@ -118,9 +67,13 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 	messageID := u.CallbackQuery.Message.MessageID
 
 	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
+	if errors.Is(err, storage.ErrUserNotFound) {
+		_, err = h.storage.SaveUser(author.ID, author.UserName, author.FirstName, author.LastName)
+		if err != nil {
+			log.Error("could not save user to database", sl.Err(err))
+		}
+	} else if err != nil {
 		log.Error("failed to get user from database", sl.Err(err))
-		h.editMessage(author.ID, messageID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
 		return
 	}
 

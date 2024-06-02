@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 services:
     postgres:
@@ -10,4 +10,13 @@ services:
         environment:
             - POSTGRES_PASSWORD
         ports:
-            - "5432:5432"
+            - "17288:5432"
+
+    bot:
+        container_name: "0xterminal-bot"
+        image: "0xterminal-helper-bot"
+        restart: "unless-stopped"
+        volumes:
+            - ./.logs/:/app/.logs
+        environment:
+            - CONFIG_PATH

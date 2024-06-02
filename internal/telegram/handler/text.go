@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -18,13 +20,6 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 		slog.String("username", author.UserName),
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
-
-	_, err := h.storage.GetUserByTelegramID(author.ID)
-	if err != nil {
-		log.Error("failed to get user from database", sl.Err(err))
-		h.sendTextMessage(author.ID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
-		return
-	}
 
 	stage, exists := h.stages[author.ID]
 	if !exists {
@@ -51,13 +46,17 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 
 		answer, err := h.storage.TryFindAnswer(words)
 		if err != nil {
-			log.Error("could not get answer from database", err)
+			if errors.Is(err, sql.ErrNoRows) {
+				log.Info("game with sent word list was not found")
+			} else {
+				log.Error("could not get answer from database", sl.Err(err))
+			}
 		}
 		if answer != "" {
 			h.sendTextMessage(author.ID, "<b>Found game with similar words list</b>\n\nProbably, the target is <code>"+answer+"</code>", nil)
 		}
 
-		h.sendTextMessage(author.ID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords))
+		h.sendTextMessage(author.ID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(words)), GetMarkupWords(h.games[author.ID].AvailableWords))
 	case None:
 		h.sendTextMessage(author.ID, "Use /newgame or click the button to start new $TERMINAL game", GetMarkupNewGame())
 	}
