@@ -4,17 +4,18 @@ import (
 	"terminal/internal/terminal/dataset"
 	"time"
 
-	"github.com/syndtr/goleveldb/leveldb/errors"
+	"errors"
 )
 
 // TODO(#9): add custom errors to storage functions
 
 var (
-	ErrUserNotFound = errors.New("0xterminal.storage: user not found")
+	ErrUserNotFound      = errors.New("0xterminal.storage: user not found")
+	ErrUserAlreadyExists = errors.New("0xterminal.storage: user already exists")
 )
 
 type Storage interface {
-	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
+	SaveUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
 	GetUserByTelegramID(telegramID int64) (*User, error)
 	SaveGame(telegramID int64, words []string, target string) (*Game, error)
 	TryFindAnswer(words []string) (string, error)
