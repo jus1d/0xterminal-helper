@@ -123,3 +123,52 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 
 	return &data, nil
 }
+
+func (s *Storage) GetDailyReport() (*storage.DailyReport, error) {
+	query := "SELECT u.username, COUNT(g.id) AS played_today FROM users u LEFT JOIN games g ON u.telegram_id = g.telegram_id WHERE g.created_at >= CURRENT_DATE GROUP BY u.username ORDER BY played_today DESC"
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var userStats []storage.DailyUserStat
+
+	for rows.Next() {
+		var stat storage.DailyUserStat
+		err := rows.Scan(&stat.Username, &stat.GamesPlayed)
+		if err != nil {
+			return nil, err
+		}
+		userStats = append(userStats, stat)
+	}
+
+	query = "SELECT username FROM users WHERE created_at >= CURRENT_DATE"
+
+	rows, err = s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var usersJoined []string
+
+	for rows.Next() {
+		var userJoined string
+		err := rows.Scan(&userJoined)
+		if err != nil {
+			return nil, err
+		}
+		usersJoined = append(usersJoined, userJoined)
+	}
+
+	var report storage.DailyReport
+
+	report.Stats = userStats
+	report.JoinedUsers = usersJoined
+
+	return &report, nil
+}

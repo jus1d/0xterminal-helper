@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"terminal/internal/terminal/dataset"
 	"terminal/pkg/log/sl"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -80,7 +81,7 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 
 	user, err := h.storage.GetUserByTelegramID(author.ID)
 	if err != nil {
-		log.Error("failed tp get user from database", sl.Err(err))
+		log.Error("failed to get user from database", sl.Err(err))
 		h.sendTextMessage(author.ID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
 		return
 	}
@@ -128,4 +129,52 @@ func (h *Handler) CommandDataset(u tgbotapi.Update) {
 	log.Info("0xterminal dataset sent")
 
 	os.Remove(path)
+}
+
+func (h *Handler) CommandDailyReport(u tgbotapi.Update) {
+	author := u.Message.From
+	log := h.log.With(
+		slog.String("op", "handler.CommandDailyReport"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("failed to get user from database", sl.Err(err))
+		h.sendTextMessage(author.ID, "<b>It seems that you are new here</b>\n\nUse /start to start the bot", nil)
+		return
+	}
+
+	if !user.IsAdmin {
+		h.sendTextMessage(author.ID, "<b>You are not permitted to use this command</b>", nil)
+		return
+	}
+
+	report, err := h.storage.GetDailyReport()
+	if err != nil {
+		log.Error("failed tp get daily report from database", sl.Err(err))
+		h.sendTextMessage(author.ID, "🚨 <b>Failed to get daily report</b>", nil)
+		return
+	}
+
+	var content string
+
+	totalGames := 0
+	for i, stat := range report.Stats {
+		content += fmt.Sprintf(" - <b>%d</b> by @%s\n", stat.GamesPlayed, stat.Username)
+		totalGames += stat.GamesPlayed
+		if i == len(report.Stats)-1 {
+			content += "\n"
+		}
+	}
+
+	content = fmt.Sprintf("<b>DAILY REPORT: </b>%s\n\n<b>Games played: %d</b>\n", time.Now().Format("2 Jan. 2006"), totalGames) + content
+
+	content += fmt.Sprintf("<b>Joined users:</b> %d\n", len(report.JoinedUsers))
+	for _, user := range report.JoinedUsers {
+		content += fmt.Sprintf(" - @%s\n", user)
+	}
+
+	h.sendTextMessage(author.ID, content, nil)
 }

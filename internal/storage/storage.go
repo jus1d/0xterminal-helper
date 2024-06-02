@@ -13,6 +13,7 @@ type Storage interface {
 	SaveGame(telegramID int64, words []string, target string) (*Game, error)
 	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
+	GetDailyReport() (*DailyReport, error)
 }
 
 const (
@@ -37,4 +38,14 @@ type Game struct {
 	Target     string    `db:"target"`
 	WordsHash  string    `db:"words_hash"`
 	CreatedAt  time.Time `db:"created_at"`
+}
+
+type DailyReport struct {
+	Stats       []DailyUserStat
+	JoinedUsers []string
+}
+
+type DailyUserStat struct {
+	Username    string
+	GamesPlayed int
 }
