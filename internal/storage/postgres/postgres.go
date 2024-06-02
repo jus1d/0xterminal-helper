@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"terminal/internal/config"
 	"terminal/internal/storage"
@@ -49,6 +51,9 @@ func (s *Storage) CreateUser(telegramID int64, username string, firstname string
 func (s *Storage) GetUserByTelegramID(telegramID int64) (*storage.User, error) {
 	var user storage.User
 	err := s.db.QueryRow("SELECT * FROM users WHERE telegram_id = $1", telegramID).Scan(&user.ID, &user.TelegramID, &user.Username, &user.FirstName, &user.LastName, &user.IsAdmin, &user.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, storage.ErrUserNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

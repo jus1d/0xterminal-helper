@@ -3,9 +3,15 @@ package storage
 import (
 	"terminal/internal/terminal/dataset"
 	"time"
+
+	"github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 // TODO(#9): add custom errors to storage functions
+
+var (
+	ErrUserNotFound = errors.New("0xterminal.storage: user not found")
+)
 
 type Storage interface {
 	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
