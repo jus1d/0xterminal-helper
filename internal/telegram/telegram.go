@@ -54,13 +54,13 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 
 	if u.Message != nil {
 		if u.Message.Photo != nil {
-			log.Info("image received", slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
+			log.Info("photo message received", slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
 			b.handler.PhotoMessage(u)
 			return
 		}
 
-		log.Info("message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
+		log.Info("text message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
 		switch u.Message.Text {
 		case "/start":
