@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"terminal/internal/config"
 	"terminal/internal/storage"
@@ -32,7 +34,7 @@ func New(conf config.Postgres) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) CreateUser(telegramID int64, username string, firstname string, lastname string) (*storage.User, error) {
+func (s *Storage) SaveUser(telegramID int64, username string, firstname string, lastname string) (*storage.User, error) {
 	query := "INSERT INTO users (telegram_id, username, firstname, lastname) VALUES ($1, $2, $3, $4) RETURNING *"
 	row := s.db.QueryRow(query, telegramID, username, firstname, lastname)
 
@@ -42,13 +44,22 @@ func (s *Storage) CreateUser(telegramID int64, username string, firstname string
 
 	var user storage.User
 	err := row.Scan(&user.ID, &user.TelegramID, &user.Username, &user.FirstName, &user.LastName, &user.IsAdmin, &user.CreatedAt)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return nil, storage.ErrUserAlreadyExists
+		}
+		return nil, err
+	}
 
-	return &user, err
+	return &user, nil
 }
 
 func (s *Storage) GetUserByTelegramID(telegramID int64) (*storage.User, error) {
 	var user storage.User
 	err := s.db.QueryRow("SELECT * FROM users WHERE telegram_id = $1", telegramID).Scan(&user.ID, &user.TelegramID, &user.Username, &user.FirstName, &user.LastName, &user.IsAdmin, &user.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, storage.ErrUserNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
