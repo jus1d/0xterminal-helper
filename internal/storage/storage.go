@@ -1,18 +1,11 @@
 package storage
 
 import (
-	"errors"
 	"terminal/internal/terminal/dataset"
 	"time"
 )
 
 // TODO(#9): add custom errors to storage functions
-
-var (
-	ErrUserNotFound      = errors.New("storage: user not found")
-	ErrUserAlreadyExists = errors.New("storage: user already exists")
-	ErrAnswerNotFound    = errors.New("storage: answer to found")
-)
 
 type Storage interface {
 	CreateUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
