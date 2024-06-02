@@ -144,7 +144,11 @@ func (h *Handler) CommandDailyReport(u tgbotapi.Update) {
 
 	totalGames := 0
 	for i, stat := range report.Stats {
-		content += fmt.Sprintf(" - <b>%d</b> by @%s\n", stat.GamesPlayed, stat.Username)
+		if stat.GamesPlayed == 1 {
+			content += fmt.Sprintf(" - <b>%d</b> game by @%s\n", stat.GamesPlayed, stat.Username)
+		} else {
+			content += fmt.Sprintf(" - <b>%d</b> games by @%s\n", stat.GamesPlayed, stat.Username)
+		}
 		totalGames += stat.GamesPlayed
 		if i == len(report.Stats)-1 {
 			content += "\n"
