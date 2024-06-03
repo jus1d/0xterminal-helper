@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+    push:
+        branches: [master, develop]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Run command on remote server
+              uses: D3rHase/ssh-command-action@v0.2.2
+              with:
+                  host: ${{secrets.SSH_HOST}}
+                  user: ${{secrets.SSH_USER}}
+                  private_key: ${{secrets.SSH_PRIVATE_KEY}}
+                  command: |
+                      cd ${{ secrets.PROJECT_DIR }};
+                      git pull;
+                      docker build -t 0xterminal-helper-bot .;
+                      docker compose down;
+                      docker compose up -d;
