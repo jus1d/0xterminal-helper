@@ -29,6 +29,10 @@ func New(words []string) (*Game, error) {
 		return nil, ErrDifferentWordsLength
 	}
 
+	for i := range words {
+		words[i] = strings.ToLower(words[i])
+	}
+
 	game := &Game{
 		InitialWords:   words,
 		AvailableWords: words,
