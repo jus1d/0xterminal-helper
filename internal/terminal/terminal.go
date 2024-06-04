@@ -30,7 +30,7 @@ func New(words []string) (*Game, error) {
 	}
 
 	for i := range words {
-		words[i] = strings.ToLower(words[i])
+		words[i] = strings.TrimSpace(strings.ToLower(words[i]))
 	}
 
 	game := &Game{
