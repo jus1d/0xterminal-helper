@@ -155,7 +155,7 @@ func (h *Handler) CommandDailyReport(u tgbotapi.Update) {
 		}
 	}
 
-	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played: %d</b>\n", time.Now().Format("2 January, 2006"), totalGames) + content
+	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", time.Now().Format("2 January, 2006"), totalGames) + content
 
 	content += fmt.Sprintf("<b>Joined users:</b> %d\n", len(report.JoinedUsers))
 	for _, user := range report.JoinedUsers {
