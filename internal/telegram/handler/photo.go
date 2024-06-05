@@ -23,7 +23,8 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
 
-	h.sendTextMessage(author.ID, "<b>To improve the quality of image recognition, please disable the effects in $TERMINAL\n\n</b>$TERMINAL -> settings -> effects -> turn off", nil)
+	// h.sendTextMessage(author.ID, "<b>To improve the quality of image recognition, please disable the effects in $TERMINAL\n\n</b>$TERMINAL -> settings -> effects -> turn off", nil)
+	sticker, _ := h.sendSticker(author.ID, WaitingSticker)
 
 	stage, exists := h.stages[author.ID]
 	if !exists {
@@ -71,10 +72,17 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		h.log.Error("failed to delete temporary file", sl.Err(err))
 	}
 
+	h.deleteMessage(author.ID, sticker.MessageID)
+
 	if len(words) < 6 {
-		content := "<b>Recognized words:</b>\n\n"
-		for _, word := range words {
-			content += fmt.Sprintf("<code>%s</code>\n", word)
+		var content string
+		if len(words) == 0 {
+			content = "<b>No words recognized</b>"
+		} else {
+			content = "<b>Recognized words:</b>\n\n"
+			for _, word := range words {
+				content += fmt.Sprintf("<code>%s</code>\n", word)
+			}
 		}
 		h.sendTextMessage(author.ID, content, nil)
 		h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)

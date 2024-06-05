@@ -22,6 +22,8 @@ func (h *Handler) CommandStart(u tgbotapi.Update) {
 		slog.String("id", strconv.FormatInt(author.ID, 10)),
 	)
 
+	h.sendSticker(author.ID, GreetingSticker)
+
 	_, err := h.storage.SaveUser(author.ID, author.UserName, author.FirstName, author.LastName)
 	if err != nil && !errors.Is(err, storage.ErrUserAlreadyExists) {
 		log.Error("could not save user to database", sl.Err(err))

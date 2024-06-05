@@ -10,6 +10,11 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const (
+	GreetingSticker = tgbotapi.FileID("CAACAgIAAxkBAAIEZGZgUk4PpvRpPIEzmIF5SnLlRPsCAAJ1WgAC0YohSqBRt93rOG5hNQQ")
+	WaitingSticker  = tgbotapi.FileID("CAACAgIAAxkBAAIEYGZgG0yU3WUeIN7d_brzaqUEchPtAAIaSQACsCNJSmO4cga8SZwHNQQ")
+)
+
 type Stage uint8
 
 const (
@@ -37,32 +42,64 @@ func New(logger *slog.Logger, client *tgbotapi.BotAPI, st storage.Storage, o *oc
 	}
 }
 
-func (h *Handler) sendTextMessage(chatID int64, content string, markup *tgbotapi.InlineKeyboardMarkup) {
+func (h *Handler) sendTextMessage(chatID int64, content string, markup *tgbotapi.InlineKeyboardMarkup) (tgbotapi.Message, error) {
 	log := h.log.With(
 		slog.String("op", "handler.sendTextMessage"),
 	)
 
-	message := tgbotapi.NewMessage(chatID, content)
-	message.ParseMode = tgbotapi.ModeHTML
-	message.ReplyMarkup = markup
+	chattable := tgbotapi.NewMessage(chatID, content)
+	chattable.ParseMode = tgbotapi.ModeHTML
+	chattable.ReplyMarkup = markup
 
-	_, err := h.client.Send(message)
+	message, err := h.client.Send(chattable)
 	if err != nil {
 		log.Error("could not send message", sl.Err(err))
 	}
+	return message, err
 }
 
-func (h *Handler) editMessage(chatID int64, messageID int, content string, markup *tgbotapi.InlineKeyboardMarkup) {
+func (h *Handler) editMessage(chatID int64, messageID int, content string, markup *tgbotapi.InlineKeyboardMarkup) (tgbotapi.Message, error) {
 	log := h.log.With(
 		slog.String("op", "handler.editMessage"),
 	)
 
-	message := tgbotapi.NewEditMessageText(chatID, messageID, content)
-	message.ParseMode = tgbotapi.ModeHTML
-	message.ReplyMarkup = markup
+	chattable := tgbotapi.NewEditMessageText(chatID, messageID, content)
+	chattable.ParseMode = tgbotapi.ModeHTML
+	chattable.ReplyMarkup = markup
 
-	_, err := h.client.Send(message)
+	message, err := h.client.Send(chattable)
 	if err != nil {
 		log.Error("could not send message", sl.Err(err))
+	}
+
+	return message, err
+}
+
+func (h *Handler) sendSticker(chatID int64, sticker tgbotapi.RequestFileData) (tgbotapi.Message, error) {
+	log := h.log.With(
+		slog.String("op", "handler.sendSticker"),
+	)
+
+	chattable := tgbotapi.NewSticker(chatID, sticker)
+	message, err := h.client.Send(chattable)
+	if err != nil {
+		log.Error("could not send sticker message", sl.Err(err))
+	}
+
+	return message, err
+}
+
+func (h *Handler) deleteMessage(chatID int64, messageID int) {
+	log := h.log.With(
+		slog.String("op", "handler.deleteMessage"),
+	)
+
+	config := tgbotapi.DeleteMessageConfig{
+		ChatID:    chatID,
+		MessageID: messageID,
+	}
+	_, err := h.client.Request(config)
+	if err != nil {
+		log.Error("could not delete message", sl.Err(err))
 	}
 }
