@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"terminal/internal/storage"
-	"terminal/internal/terminal"
 	"terminal/pkg/log/sl"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -88,12 +87,7 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 		return
 	}
 
-	// attempt := terminal.Attempt{
-	// 	Word:           word,
-	// 	GuessedLetters: guessedLetters,
-	// }
-	attempt := terminal.Attempt(word, guessedLetters)
-	game.SubmitAttempt(attempt)
+	game.SubmitAttempt(word, guessedLetters)
 
 	if len(game.AvailableWords()) == 1 {
 		delete(h.games, author.ID)

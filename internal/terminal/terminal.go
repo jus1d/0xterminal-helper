@@ -21,8 +21,8 @@ type Game struct {
 }
 
 type attempt struct {
-	Word           string
-	GuessedLetters int
+	word           string
+	guessedLetters int
 }
 
 func New(words []string) (*Game, error) {
@@ -48,13 +48,6 @@ func New(words []string) (*Game, error) {
 	return game, nil
 }
 
-func Attempt(word string, guessedLetters int) attempt {
-	return attempt{
-		Word:           word,
-		GuessedLetters: guessedLetters,
-	}
-}
-
 func (g *Game) Words() []string {
 	return g.initialWords
 }
@@ -73,15 +66,19 @@ func (g *Game) Target() string {
 func (g *Game) Attempts() int {
 	n := 0
 	for _, attempt := range g.attempts {
-		if attempt.GuessedLetters != len(g.initialWords[0]) {
+		if attempt.guessedLetters != len(g.initialWords[0]) {
 			n++
 		}
 	}
 	return n + 1
 }
 
-func (g *Game) SubmitAttempt(attempt attempt) {
-	g.attempts = append(g.attempts, &attempt)
+func (g *Game) SubmitAttempt(word string, guessedLetters int) {
+	a := attempt{
+		word:           word,
+		guessedLetters: guessedLetters,
+	}
+	g.attempts = append(g.attempts, &a)
 	g.updateWords()
 	g.sortWordsBySexyIndex()
 }
@@ -119,7 +116,7 @@ func (g *Game) updateWords() {
 	for _, word := range g.availableWords {
 		fits := true
 		for _, tried := range g.attempts {
-			if !compareWordsMatchedLetters(word, tried.Word, tried.GuessedLetters) {
+			if !compareWordsMatchedLetters(word, tried.word, tried.guessedLetters) {
 				fits = false
 				break
 			}
