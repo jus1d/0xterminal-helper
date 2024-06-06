@@ -23,7 +23,7 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
@@ -43,7 +43,7 @@ func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 		h.editMessage(author.ID, messageID, "<b>Use /newgame or button to start new game</b>", GetMarkupNewGame())
 		return
 	}
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
@@ -88,27 +88,28 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 		return
 	}
 
-	attempt := terminal.Attempt{
-		Word:           word,
-		GuessedLetters: guessedLetters,
-	}
+	// attempt := terminal.Attempt{
+	// 	Word:           word,
+	// 	GuessedLetters: guessedLetters,
+	// }
+	attempt := terminal.Attempt(word, guessedLetters)
 	game.SubmitAttempt(attempt)
 
-	if len(game.AvailableWords) == 1 {
+	if len(game.AvailableWords()) == 1 {
 		delete(h.games, author.ID)
-		h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), GetMarkupNewGame())
+		h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.Target()), GetMarkupNewGame())
 
 		// we'll assume that game is kinda spam, if initial words is less than 6
-		if len(game.InitialWords) >= 6 {
-			h.storage.SaveGame(author.ID, game.InitialWords, game.AvailableWords[0], game.CountAttempts())
+		if len(game.Words()) >= 6 {
+			h.storage.SaveGame(author.ID, game.Words(), game.Target(), game.Attempts())
 		}
 		return
 	}
-	if len(game.AvailableWords) == 0 {
+	if len(game.AvailableWords()) == 0 {
 		delete(h.games, author.ID)
 		h.editMessage(author.ID, messageID, "<b>No matching words left.</b>\n\nTry again, may be you made a mistake?", nil)
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords()))
 }
