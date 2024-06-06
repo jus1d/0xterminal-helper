@@ -6,6 +6,19 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+func GetMarkupAdmin() *tgbotapi.InlineKeyboardMarkup {
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Daily Report", "admin-get-daily-report"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Dataset", "admin-get-dataset"),
+			tgbotapi.NewInlineKeyboardButtonData("Stats", "admin-get-stats"),
+		),
+	)
+	return &markup
+}
+
 func GetMarkupGameMenu() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(

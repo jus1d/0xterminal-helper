@@ -55,6 +55,31 @@ func (h *Handler) CommandGame(u tgbotapi.Update) {
 	}
 }
 
+func (h *Handler) CommandAdmin(u tgbotapi.Update) {
+	author := u.Message.From
+	log := h.log.With(
+		slog.String("op", "handler.CommandDataset"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("could not get user from database", sl.Err(err))
+		return
+	}
+
+	if !user.IsAdmin {
+		return
+	}
+
+	content := "<b>Admin Panel</b>\n\n"
+	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n", author.ID)
+
+	h.sendTextMessage(author.ID, content, GetMarkupAdmin())
+}
+
 func (h *Handler) CommandDataset(u tgbotapi.Update) {
 	author := u.Message.From
 	log := h.log.With(

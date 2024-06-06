@@ -71,6 +71,8 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.CommandDataset(u)
 		case "/dailyreport":
 			b.handler.CommandDailyReport(u)
+		case "/a":
+			b.handler.CommandAdmin(u)
 		default:
 			b.handler.TextMessage(u)
 		}
