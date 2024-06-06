@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"terminal/internal/storage"
 	"terminal/internal/terminal/dataset"
+	"terminal/pkg/git"
 	"terminal/pkg/log/sl"
 	"time"
 
@@ -76,7 +77,10 @@ func (h *Handler) CommandAdmin(u tgbotapi.Update) {
 	// TODO(#27): Add build info to /a command such as last commit, version etc.
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
-	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n", author.ID)
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
+	content += fmt.Sprintf("<b>Build:</b>\n")
+	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
+	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
 
 	h.sendTextMessage(author.ID, content, GetMarkupAdmin())
 }
