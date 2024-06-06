@@ -131,7 +131,7 @@ func (s *Storage) TryFindAnswer(words []string) (string, error) {
 }
 
 func (s *Storage) GetDataset() (*dataset.Dataset, error) {
-	query := "SELECT games.words, games.target, games.words_hash, games.created_at, users.username, users.telegram_id FROM games JOIN users ON games.telegram_id = users.telegram_id ORDER BY games.created_at DESC"
+	query := "SELECT games.words, games.target, games.attempts_amount, games.words_hash, games.created_at, users.username, users.telegram_id FROM games JOIN users ON games.telegram_id = users.telegram_id ORDER BY games.created_at DESC"
 
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -145,7 +145,7 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 	for rows.Next() {
 		var game dataset.Game
 		var words pq.StringArray
-		err := rows.Scan(&words, &game.Target, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
+		err := rows.Scan(&words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
 		if err != nil {
 			return nil, err
 		}
