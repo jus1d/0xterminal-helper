@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"strconv"
 	"strings"
 	"terminal/internal/storage"
-	"terminal/internal/terminal"
+	"terminal/internal/terminal/dataset"
+	"terminal/pkg/git"
 	"terminal/pkg/log/sl"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -23,7 +26,7 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
@@ -43,7 +46,164 @@ func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 		h.editMessage(author.ID, messageID, "<b>Use /newgame or button to start new game</b>", GetMarkupNewGame())
 		return
 	}
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
+}
+
+func (h *Handler) CallbackDataset(u tgbotapi.Update) {
+	author := u.CallbackQuery.From
+	messageID := u.CallbackQuery.Message.MessageID
+	log := h.log.With(
+		slog.String("op", "handler.CallbackDataset"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("could not get user from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", nil)
+		return
+	}
+
+	if !user.IsAdmin {
+		h.editMessage(author.ID, messageID, "<b>You are not permitted to use this command</b>", nil)
+		return
+	}
+
+	data, err := h.storage.GetDataset()
+	if err != nil {
+		log.Error("could not build dataset", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Failed to compose dataset</b>", nil)
+		return
+	}
+
+	path, err := dataset.ExportDatasetToJSON(data)
+	if err != nil {
+		log.Error("could not export dataset to JSON", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Failed to compose dataset</b>", nil)
+		return
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		log.Error("could not open file", err)
+		h.editMessage(author.ID, messageID, "<b>Failed to compose dataset</b>", nil)
+		return
+	}
+	defer file.Close()
+
+	reader := tgbotapi.FileReader{
+		Name:   "0xterminal-dataset.json",
+		Reader: file,
+	}
+
+	document := tgbotapi.NewDocument(author.ID, reader)
+	document.ReplyMarkup = nil
+
+	h.deleteMessage(author.ID, messageID)
+
+	_, err = h.client.Send(document)
+	if err != nil {
+		log.Error("could not send dataset", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Failed to compose dataset</b>", nil)
+	}
+
+	log.Info("0xterminal dataset sent")
+
+	content := "<b>Admin Panel</b>\n\n"
+	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
+	content += "<b>Build:</b>\n"
+	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
+	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+
+	h.sendTextMessage(author.ID, content, GetMarkupAdmin())
+
+	os.Remove(path)
+}
+
+func (h *Handler) CallbackAdminPanel(u tgbotapi.Update) {
+	author := u.CallbackQuery.From
+	messageID := u.CallbackQuery.Message.MessageID
+	log := h.log.With(
+		slog.String("op", "handler.CallbackAdminPanel"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("could not get user from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", nil)
+		return
+	}
+
+	if !user.IsAdmin {
+		h.editMessage(author.ID, messageID, "<b>You are not permitted to use this action</b>", nil)
+		return
+	}
+
+	content := "<b>Admin Panel</b>\n\n"
+	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
+	content += "<b>Build:</b>\n"
+	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
+	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+
+	h.editMessage(author.ID, messageID, content, GetMarkupAdmin())
+}
+
+func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
+	author := u.CallbackQuery.From
+	messageID := u.CallbackQuery.Message.MessageID
+	log := h.log.With(
+		slog.String("op", "handler.CallbackDailyReport"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("could not get user from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	if !user.IsAdmin {
+		h.editMessage(author.ID, messageID, "<b>You are not permitted to use this action</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	report, err := h.storage.GetDailyReport()
+	if err != nil {
+		log.Error("could not get daily report from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Failed to get daily report</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	var content string
+
+	totalGames := 0
+	for i, stat := range report.Stats {
+		if stat.GamesPlayed == 1 {
+			content += fmt.Sprintf(" - <b>%d</b> game by @%s\n", stat.GamesPlayed, stat.Username)
+		} else {
+			content += fmt.Sprintf(" - <b>%d</b> games by @%s\n", stat.GamesPlayed, stat.Username)
+		}
+		totalGames += stat.GamesPlayed
+		if i == len(report.Stats)-1 {
+			content += "\n"
+		}
+	}
+
+	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", time.Now().Format("2 January, 2006"), totalGames) + content
+
+	content += fmt.Sprintf("<b>Joined users:</b> %d\n", len(report.JoinedUsers))
+	for _, user := range report.JoinedUsers {
+		content += fmt.Sprintf(" - @%s\n", user)
+	}
+
+	h.editMessage(author.ID, messageID, content, GetMarkupBackToAdmin())
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
@@ -88,27 +248,23 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 		return
 	}
 
-	attempt := terminal.Attempt{
-		Word:           word,
-		GuessedLetters: guessedLetters,
-	}
-	game.SubmitAttempt(attempt)
+	game.SubmitAttempt(word, guessedLetters)
 
-	if len(game.AvailableWords) == 1 {
+	if len(game.AvailableWords()) == 1 {
 		delete(h.games, author.ID)
-		h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.AvailableWords[0]), GetMarkupNewGame())
+		h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Target word:</b> <code>%s</code>", game.Target()), GetMarkupNewGame())
 
 		// we'll assume that game is kinda spam, if initial words is less than 6
-		if len(game.InitialWords) >= 6 {
-			h.storage.SaveGame(author.ID, game.InitialWords, game.AvailableWords[0], game.CountAttempts())
+		if len(game.Words()) >= 6 {
+			h.storage.SaveGame(author.ID, game.Words(), game.Target(), game.Attempts())
 		}
 		return
 	}
-	if len(game.AvailableWords) == 0 {
+	if len(game.AvailableWords()) == 0 {
 		delete(h.games, author.ID)
 		h.editMessage(author.ID, messageID, "<b>No matching words left.</b>\n\nTry again, may be you made a mistake?", nil)
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords))
+	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords()))
 }

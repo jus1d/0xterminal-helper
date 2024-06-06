@@ -50,6 +50,7 @@ func (h *Handler) sendTextMessage(chatID int64, content string, markup *tgbotapi
 	chattable := tgbotapi.NewMessage(chatID, content)
 	chattable.ParseMode = tgbotapi.ModeHTML
 	chattable.ReplyMarkup = markup
+	chattable.DisableWebPagePreview = true
 
 	message, err := h.client.Send(chattable)
 	if err != nil {
@@ -66,6 +67,7 @@ func (h *Handler) editMessage(chatID int64, messageID int, content string, marku
 	chattable := tgbotapi.NewEditMessageText(chatID, messageID, content)
 	chattable.ParseMode = tgbotapi.ModeHTML
 	chattable.ReplyMarkup = markup
+	chattable.DisableWebPagePreview = true
 
 	message, err := h.client.Send(chattable)
 	if err != nil {

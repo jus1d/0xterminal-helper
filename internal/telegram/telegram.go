@@ -67,10 +67,8 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.CommandStart(u)
 		case "/newgame":
 			b.handler.CommandGame(u)
-		case "/dataset":
-			b.handler.CommandDataset(u)
-		case "/dailyreport":
-			b.handler.CommandDailyReport(u)
+		case "/a":
+			b.handler.CommandAdmin(u)
 		default:
 			b.handler.TextMessage(u)
 		}
@@ -87,6 +85,12 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			b.handler.CallbackStartNewGame(u)
 		case query == "words-list":
 			b.handler.CallbackWordsList(u)
+		case query == "dataset":
+			b.handler.CallbackDataset(u)
+		case query == "admin-panel":
+			b.handler.CallbackAdminPanel(u)
+		case strings.HasPrefix(query, "daily-report:"):
+			b.handler.CallbackDailyReport(u)
 		case strings.HasPrefix(query, "choose-word:"):
 			b.handler.CallbackChooseWord(u)
 		case strings.HasPrefix(query, "choose-guessed-letters:"):

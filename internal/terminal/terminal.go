@@ -11,17 +11,18 @@ import (
 
 var (
 	ErrDifferentWordsLength = errors.New("terminal.Game.New(): words could not be different length")
+	ErrInsufficientWords    = errors.New("terminal.Game.New(): insufficient words list")
 )
 
 type Game struct {
-	InitialWords   []string
-	AvailableWords []string
-	Attempts       []*Attempt
+	initialWords   []string
+	availableWords []string
+	attempts       []*attempt
 }
 
-type Attempt struct {
-	Word           string
-	GuessedLetters int
+type attempt struct {
+	word           string
+	guessedLetters int
 }
 
 func New(words []string) (*Game, error) {
@@ -29,22 +30,55 @@ func New(words []string) (*Game, error) {
 		return nil, ErrDifferentWordsLength
 	}
 
+	if len(words) < 6 {
+		return nil, ErrInsufficientWords
+	}
+
 	for i := range words {
 		words[i] = strings.TrimSpace(strings.ToLower(words[i]))
 	}
 
 	game := &Game{
-		InitialWords:   words,
-		AvailableWords: words,
-		Attempts:       make([]*Attempt, 0),
+		initialWords:   words,
+		availableWords: words,
+		attempts:       make([]*attempt, 0),
 	}
 	game.sortWordsBySexyIndex()
 
 	return game, nil
 }
 
-func (g *Game) SubmitAttempt(attempt Attempt) {
-	g.Attempts = append(g.Attempts, &attempt)
+func (g *Game) Words() []string {
+	return g.initialWords
+}
+
+func (g *Game) AvailableWords() []string {
+	return g.availableWords
+}
+
+func (g *Game) Target() string {
+	if len(g.availableWords) != 1 {
+		return ""
+	}
+	return g.availableWords[0]
+}
+
+func (g *Game) Attempts() int {
+	n := 0
+	for _, attempt := range g.attempts {
+		if attempt.guessedLetters != len(g.initialWords[0]) {
+			n++
+		}
+	}
+	return n + 1
+}
+
+func (g *Game) SubmitAttempt(word string, guessedLetters int) {
+	a := attempt{
+		word:           word,
+		guessedLetters: guessedLetters,
+	}
+	g.attempts = append(g.attempts, &a)
 	g.updateWords()
 	g.sortWordsBySexyIndex()
 }
@@ -77,22 +111,12 @@ func ComputeWordsHash(words []string) string {
 	return hex.EncodeToString(checksum[:])
 }
 
-func (g *Game) CountAttempts() int {
-	n := 0
-	for _, attempt := range g.Attempts {
-		if attempt.GuessedLetters != len(g.InitialWords[0]) {
-			n++
-		}
-	}
-	return n + 1
-}
-
 func (g *Game) updateWords() {
 	updated := make([]string, 0)
-	for _, word := range g.AvailableWords {
+	for _, word := range g.availableWords {
 		fits := true
-		for _, tried := range g.Attempts {
-			if !compareWordsMatchedLetters(word, tried.Word, tried.GuessedLetters) {
+		for _, tried := range g.attempts {
+			if !compareWordsMatchedLetters(word, tried.word, tried.guessedLetters) {
 				fits = false
 				break
 			}
@@ -101,12 +125,12 @@ func (g *Game) updateWords() {
 			updated = append(updated, word)
 		}
 	}
-	g.AvailableWords = updated
+	g.availableWords = updated
 }
 
 func (g *Game) sortWordsBySexyIndex() {
-	sort.Slice(g.AvailableWords, func(i, j int) bool {
-		return countWordSexyIndex(g.AvailableWords[i], g.AvailableWords) < countWordSexyIndex(g.AvailableWords[j], g.AvailableWords)
+	sort.Slice(g.availableWords, func(i, j int) bool {
+		return countWordSexyIndex(g.availableWords[i], g.availableWords) < countWordSexyIndex(g.availableWords[j], g.availableWords)
 	})
 }
 
