@@ -15,5 +15,6 @@ WORKDIR /app
 
 COPY --from=builder /0xterminal-helper/.bin ./.bin
 COPY --from=builder /0xterminal-helper/config ./config
+COPY --from=builder /0xterminal-herlper/.git ./.git
 
 CMD ["./.bin/terminal"]
