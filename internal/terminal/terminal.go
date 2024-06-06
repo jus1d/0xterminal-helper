@@ -77,6 +77,16 @@ func ComputeWordsHash(words []string) string {
 	return hex.EncodeToString(checksum[:])
 }
 
+func (g *Game) CountAttempts() int {
+	n := 0
+	for _, attempt := range g.Attempts {
+		if attempt.GuessedLetters != len(g.InitialWords[0]) {
+			n++
+		}
+	}
+	return n + 1
+}
+
 func (g *Game) updateWords() {
 	updated := make([]string, 0)
 	for _, word := range g.AvailableWords {
