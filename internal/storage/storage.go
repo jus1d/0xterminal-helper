@@ -20,6 +20,7 @@ type Storage interface {
 	SaveGame(telegramID int64, words []string, target string, attemptsAmount int) (*Game, error)
 	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
+	GetAllGames() ([]Game, error)
 	GetDailyReport() (*DailyReport, error)
 }
 

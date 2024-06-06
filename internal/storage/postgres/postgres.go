@@ -34,37 +34,6 @@ func New(conf config.Postgres) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) GetAllGames() ([]storage.Game, error) {
-	query := "SELECT * FROM games"
-
-	rows, err := s.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var games []storage.Game
-
-	for rows.Next() {
-		var game storage.Game
-		var words pq.StringArray
-		err := rows.Scan(&game.ID, &game.TelegramID, &words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-		game.Words = []string(words)
-
-		games = append(games, game)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return games, nil
-}
-
 func (s *Storage) SaveUser(telegramID int64, username string, firstname string, lastname string) (*storage.User, error) {
 	query := "INSERT INTO users (telegram_id, username, firstname, lastname) VALUES ($1, $2, $3, $4) RETURNING *"
 	row := s.db.QueryRow(query, telegramID, username, firstname, lastname)
@@ -164,6 +133,37 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 	data.TotalGames = len(games)
 
 	return &data, nil
+}
+
+func (s *Storage) GetAllGames() ([]storage.Game, error) {
+	query := "SELECT * FROM games"
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var games []storage.Game
+
+	for rows.Next() {
+		var game storage.Game
+		var words pq.StringArray
+		err := rows.Scan(&game.ID, &game.TelegramID, &words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		game.Words = []string(words)
+
+		games = append(games, game)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return games, nil
 }
 
 func (s *Storage) GetDailyReport() (*storage.DailyReport, error) {

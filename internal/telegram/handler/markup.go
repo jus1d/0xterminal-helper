@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -9,11 +10,19 @@ import (
 func GetMarkupAdmin() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Daily Report", "admin-get-daily-report"),
+			tgbotapi.NewInlineKeyboardButtonData("Daily Report", time.Now().Format("daily-report:02-01-2006")),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Dataset", "admin-get-dataset"),
-			tgbotapi.NewInlineKeyboardButtonData("Stats", "admin-get-stats"),
+			tgbotapi.NewInlineKeyboardButtonData("Dataset", "dataset"),
+		),
+	)
+	return &markup
+}
+
+func GetMarkupBackToAdmin() *tgbotapi.InlineKeyboardMarkup {
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("« Back", "admin-panel"),
 		),
 	)
 	return &markup
