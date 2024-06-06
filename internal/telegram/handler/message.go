@@ -34,16 +34,16 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 	case WaitingWordList:
 		words := terminal.RemoveTrashFromWordList(strings.Split(u.Message.Text, "\n"))
 
-		if len(words) < 6 {
-			h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)
-			return
-		}
-
 		game, err := terminal.New(words)
 		if errors.Is(err, terminal.ErrDifferentWordsLength) {
 			h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list should only consist of words of the same length</b>\n\nSend me list of words in your $TERMINAL game", nil)
 			return
 		}
+		if errors.Is(err, terminal.ErrInsufficientWords) {
+			h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)
+			return
+		}
+
 		h.games[author.ID] = game
 		h.stages[author.ID] = None
 
@@ -140,15 +140,23 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 	}
 
 	game, err := terminal.New(words)
-	if errors.Is(err, terminal.ErrDifferentWordsLength) {
-		content := "<b>Recognized words:</b>\n\n"
+	if err != nil {
+		content := "<b>Recognized words:</b>\n\n<code>"
 		for _, word := range words {
-			content += fmt.Sprintf("<code>%s</code>\n", word)
+			content += fmt.Sprintf("%s\n", word)
 		}
+		content += "</code>"
 		h.sendTextMessage(author.ID, content, nil)
-		h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list should only consist of words of the same length</b>\n\nSend me list of words in your $TERMINAL game", nil)
+
+		if errors.Is(err, terminal.ErrInsufficientWords) {
+			h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list must consist of at least 6 words</b>\n\nSend me list of words in your $TERMINAL game", nil)
+		}
+		if errors.Is(err, terminal.ErrDifferentWordsLength) {
+			h.sendTextMessage(author.ID, "<b>According to the $TERMINAL rules, the word list should only consist of words of the same length</b>\n\nSend me list of words in your $TERMINAL game", nil)
+		}
 		return
 	}
+
 	h.games[author.ID] = game
 	h.stages[author.ID] = None
 
