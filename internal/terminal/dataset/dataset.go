@@ -6,18 +6,18 @@ import (
 	"time"
 )
 
-
 type Dataset struct {
 	TotalGames int    `json:"total_games"`
 	Games      []Game `json:"games"`
 }
 
 type Game struct {
-	Words     []string  `json:"words"`
-	Target    string    `json:"target"`
-	User      User      `json:"user"`
-	WordsHash string    `json:"words_hash"`
-	CreatedAt time.Time `json:"created_at"`
+	Words          []string  `json:"words"`
+	Target         string    `json:"target"`
+	AttemptsAmount int       `json:"attempts_amount"`
+	User           User      `json:"user"`
+	WordsHash      string    `json:"words_hash"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type User struct {
