@@ -110,7 +110,7 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		return
 	}
 
-	// TODO(#26): add context time imitation to words extraction
+	// TODO(#26): add context time limitation to words extraction
 	words, err := h.ocr.ExtractWords(path)
 	if err != nil {
 		log.Error("can't read words from image", sl.Err(err))
