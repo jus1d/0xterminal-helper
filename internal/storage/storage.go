@@ -17,7 +17,7 @@ var (
 type Storage interface {
 	SaveUser(telegramID int64, username string, firstname string, lastname string) (*User, error)
 	GetUserByTelegramID(telegramID int64) (*User, error)
-	SaveGame(telegramID int64, words []string, target string) (*Game, error)
+	SaveGame(telegramID int64, words []string, target string, attemptsAmount int) (*Game, error)
 	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
 	GetDailyReport() (*DailyReport, error)
@@ -39,12 +39,13 @@ type User struct {
 }
 
 type Game struct {
-	ID         string    `db:"id" json:""`
-	TelegramID int64     `db:"telegram_id"`
-	Words      []string  `db:"words"`
-	Target     string    `db:"target"`
-	WordsHash  string    `db:"words_hash"`
-	CreatedAt  time.Time `db:"created_at"`
+	ID             string    `db:"id" json:""`
+	TelegramID     int64     `db:"telegram_id"`
+	Words          []string  `db:"words"`
+	Target         string    `db:"target"`
+	AttemptsAmount int       `db:"attempts_amount"`
+	WordsHash      string    `db:"words_hash"`
+	CreatedAt      time.Time `db:"created_at"`
 }
 
 type DailyReport struct {

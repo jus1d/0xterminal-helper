@@ -34,6 +34,37 @@ func New(conf config.Postgres) (*Storage, error) {
 	}, nil
 }
 
+func (s *Storage) GetAllGames() ([]storage.Game, error) {
+	query := "SELECT * FROM games"
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var games []storage.Game
+
+	for rows.Next() {
+		var game storage.Game
+		var words pq.StringArray
+		err := rows.Scan(&game.ID, &game.TelegramID, &words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		game.Words = []string(words)
+
+		games = append(games, game)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
 func (s *Storage) SaveUser(telegramID int64, username string, firstname string, lastname string) (*storage.User, error) {
 	query := "INSERT INTO users (telegram_id, username, firstname, lastname) VALUES ($1, $2, $3, $4) RETURNING *"
 	row := s.db.QueryRow(query, telegramID, username, firstname, lastname)
@@ -67,11 +98,11 @@ func (s *Storage) GetUserByTelegramID(telegramID int64) (*storage.User, error) {
 	return &user, nil
 }
 
-func (s *Storage) SaveGame(telegramID int64, words []string, target string) (*storage.Game, error) {
-	query := "INSERT INTO games (telegram_id, words, target, words_hash) VALUES ($1, $2, $3, $4) RETURNING *"
+func (s *Storage) SaveGame(telegramID int64, words []string, target string, attemptsAmount int) (*storage.Game, error) {
+	query := "INSERT INTO games (telegram_id, words, target, attempts_amount, words_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *"
 	wordsHash := terminal.ComputeWordsHash(words)
 
-	row := s.db.QueryRow(query, telegramID, pq.Array(words), target, wordsHash)
+	row := s.db.QueryRow(query, telegramID, pq.Array(words), target, attemptsAmount, wordsHash)
 
 	if row.Err() != nil {
 		return nil, row.Err()

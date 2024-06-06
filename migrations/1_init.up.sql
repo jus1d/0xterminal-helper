@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS games (
 	telegram_id bigint NOT NULL,
 	words text[] NOT NULL,
 	target text NOT NULL,
+	attempts_amount int NOT NULL,
 	words_hash text NOT NULL,
 	created_at timestamp DEFAULT now() NOT NULL,
 	FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
