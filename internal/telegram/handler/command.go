@@ -73,6 +73,7 @@ func (h *Handler) CommandAdmin(u tgbotapi.Update) {
 		return
 	}
 
+	// TODO(#27): Add build info to /a command such as last commit, version etc.
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
 	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n", author.ID)
