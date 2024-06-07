@@ -8,6 +8,7 @@ import (
 	"terminal/internal/storage"
 	"terminal/internal/terminal"
 	"terminal/internal/terminal/dataset"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -166,10 +167,21 @@ func (s *Storage) GetAllGames() ([]storage.Game, error) {
 	return games, nil
 }
 
-func (s *Storage) GetDailyReport() (*storage.DailyReport, error) {
-	query := "SELECT u.username, COUNT(g.id) AS played_today FROM users u LEFT JOIN games g ON u.telegram_id = g.telegram_id WHERE g.created_at >= CURRENT_DATE GROUP BY u.username ORDER BY played_today DESC"
+func (s *Storage) GetDailyReport(date time.Time) (*storage.DailyReport, error) {
+	end := date.AddDate(0, 0, 1)
 
-	rows, err := s.db.Query(query)
+	startDate := date.Format("2006-01-02")
+	endDate := end.Format("2006-01-02")
+
+	query := `
+        SELECT u.username, COUNT(g.id) AS played_today
+        FROM users u
+        LEFT JOIN games g ON u.telegram_id = g.telegram_id
+        WHERE g.created_at >= $1 AND g.created_at < $2
+        GROUP BY u.username
+        ORDER BY played_today DESC`
+
+	rows, err := s.db.Query(query, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
@@ -187,9 +199,12 @@ func (s *Storage) GetDailyReport() (*storage.DailyReport, error) {
 		userStats = append(userStats, stat)
 	}
 
-	query = "SELECT username FROM users WHERE created_at >= CURRENT_DATE"
+	query = `
+        SELECT username
+        FROM users
+        WHERE created_at >= $1 AND created_at < $2`
 
-	rows, err = s.db.Query(query)
+	rows, err = s.db.Query(query, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +223,6 @@ func (s *Storage) GetDailyReport() (*storage.DailyReport, error) {
 	}
 
 	var report storage.DailyReport
-
 	report.Stats = userStats
 	report.JoinedUsers = usersJoined
 

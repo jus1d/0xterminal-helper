@@ -21,7 +21,7 @@ type Storage interface {
 	TryFindAnswer(words []string) (string, error)
 	GetDataset() (*dataset.Dataset, error)
 	GetAllGames() ([]Game, error)
-	GetDailyReport() (*DailyReport, error)
+	GetDailyReport(date time.Time) (*DailyReport, error)
 }
 
 const (

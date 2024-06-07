@@ -9,7 +9,6 @@ import (
 	"strings"
 	"terminal/internal/storage"
 	"terminal/internal/terminal/dataset"
-	"terminal/pkg/git"
 	"terminal/pkg/log/sl"
 	"time"
 
@@ -112,10 +111,7 @@ func (h *Handler) CallbackDataset(u tgbotapi.Update) {
 
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
-	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
-	content += "<b>Build:</b>\n"
-	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
-	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>", author.ID)
 
 	h.sendTextMessage(author.ID, content, GetMarkupAdmin())
 
@@ -145,10 +141,7 @@ func (h *Handler) CallbackAdminPanel(u tgbotapi.Update) {
 
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
-	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
-	content += "<b>Build:</b>\n"
-	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
-	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>", author.ID)
 
 	h.editMessage(author.ID, messageID, content, GetMarkupAdmin())
 }
@@ -174,7 +167,17 @@ func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
 		return
 	}
 
-	report, err := h.storage.GetDailyReport()
+	query := u.CallbackData()
+	parts := strings.Split(query, ":")
+	if len(parts) < 2 {
+		log.Error("could not get date from callback query", slog.String("query", query))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	date, _ := time.Parse("02-01-2006", parts[1])
+
+	report, err := h.storage.GetDailyReport(date)
 	if err != nil {
 		log.Error("could not get daily report from database", sl.Err(err))
 		h.editMessage(author.ID, messageID, "<b>Failed to get daily report</b>", GetMarkupBackToAdmin())
@@ -196,14 +199,18 @@ func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
 		}
 	}
 
-	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", time.Now().Format("2 January, 2006"), totalGames) + content
+	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", date.Format("2 January, 2006"), totalGames) + content
 
 	content += fmt.Sprintf("<b>Joined users:</b> %d\n", len(report.JoinedUsers))
 	for _, user := range report.JoinedUsers {
 		content += fmt.Sprintf(" - @%s\n", user)
 	}
 
-	h.editMessage(author.ID, messageID, content, GetMarkupBackToAdmin())
+	_, err = h.editMessage(author.ID, messageID, content, GetmarkupDailyReport(date))
+	if err != nil {
+		response := tgbotapi.NewCallback(u.CallbackQuery.ID, "No changes")
+		h.client.Request(response)
+	}
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {
