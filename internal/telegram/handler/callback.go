@@ -9,7 +9,6 @@ import (
 	"strings"
 	"terminal/internal/storage"
 	"terminal/internal/terminal/dataset"
-	"terminal/pkg/git"
 	"terminal/pkg/log/sl"
 	"time"
 
@@ -112,10 +111,7 @@ func (h *Handler) CallbackDataset(u tgbotapi.Update) {
 
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
-	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
-	content += "<b>Build:</b>\n"
-	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
-	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>", author.ID)
 
 	h.sendTextMessage(author.ID, content, GetMarkupAdmin())
 
@@ -145,10 +141,7 @@ func (h *Handler) CallbackAdminPanel(u tgbotapi.Update) {
 
 	content := "<b>Admin Panel</b>\n\n"
 	content += fmt.Sprintf("Logged in as <b>@%s</b>\n", author.UserName)
-	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>\n\n", author.ID)
-	content += "<b>Build:</b>\n"
-	content += fmt.Sprintf("Commit: <a href=\"https://github.com/jus1d/0xterminal-helper/tree/%s\">%s</a>\n", git.LatestCommit(), git.LatestShortenedCommit())
-	content += fmt.Sprintf("Branch: <code>%s</code>", git.CurrentBranch())
+	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>", author.ID)
 
 	h.editMessage(author.ID, messageID, content, GetMarkupAdmin())
 }
