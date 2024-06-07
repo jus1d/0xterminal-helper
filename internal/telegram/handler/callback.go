@@ -167,7 +167,17 @@ func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
 		return
 	}
 
-	report, err := h.storage.GetDailyReport()
+	query := u.CallbackData()
+	parts := strings.Split(query, ":")
+	if len(parts) < 2 {
+		log.Error("could not get date from callback query", slog.String("query", query))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	date, _ := time.Parse("02-01-2006", parts[1])
+
+	report, err := h.storage.GetDailyReport(date)
 	if err != nil {
 		log.Error("could not get daily report from database", sl.Err(err))
 		h.editMessage(author.ID, messageID, "<b>Failed to get daily report</b>", GetMarkupBackToAdmin())
@@ -189,14 +199,18 @@ func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
 		}
 	}
 
-	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", time.Now().Format("2 January, 2006"), totalGames) + content
+	content = fmt.Sprintf("<b>%s</b>\n\n<b>Games played:</b> %d\n", date.Format("2 January, 2006"), totalGames) + content
 
 	content += fmt.Sprintf("<b>Joined users:</b> %d\n", len(report.JoinedUsers))
 	for _, user := range report.JoinedUsers {
 		content += fmt.Sprintf(" - @%s\n", user)
 	}
 
-	h.editMessage(author.ID, messageID, content, GetMarkupBackToAdmin())
+	_, err = h.editMessage(author.ID, messageID, content, GetmarkupDailyReport(date))
+	if err != nil {
+		response := tgbotapi.NewCallback(u.CallbackQuery.ID, "No changes")
+		h.client.Request(response)
+	}
 }
 
 func (h *Handler) CallbackChooseWord(u tgbotapi.Update) {

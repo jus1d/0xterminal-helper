@@ -19,6 +19,23 @@ func GetMarkupAdmin() *tgbotapi.InlineKeyboardMarkup {
 	return &markup
 }
 
+func GetmarkupDailyReport(date time.Time) *tgbotapi.InlineKeyboardMarkup {
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("«", date.Add(-24*time.Hour).Format("daily-report:02-01-2006")),
+			tgbotapi.NewInlineKeyboardButtonData("↻", date.Format("daily-report:02-01-2006")),
+			tgbotapi.NewInlineKeyboardButtonData("»", date.Add(24*time.Hour).Format("daily-report:02-01-2006")),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Today", time.Now().Format("daily-report:02-01-2006")),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("« Back", "admin-panel"),
+		),
+	)
+	return &markup
+}
+
 func GetMarkupBackToAdmin() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
