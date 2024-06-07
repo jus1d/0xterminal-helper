@@ -12,4 +12,6 @@ postgres:
     sslmode: ""
 
 ocr:
-    token: "paste your ocr.space api token"
+    tokens:
+        - "paste your ocr.space api token"
+        - "paste your ocr.space api token"

@@ -39,7 +39,7 @@ type Postgres struct {
 
 // OCR represents structure with credentials for OCR service (ocr.space currently)
 type OCR struct {
-	Token string `yaml:"token"`
+	Tokens []string `yaml:"tokens"`
 }
 
 // MustLoad loads config to a new Config instance and return it's pointer.

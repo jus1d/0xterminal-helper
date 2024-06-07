@@ -10,10 +10,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"terminal/pkg/slice"
 )
 
 type Client struct {
-	token string
+	tokens []string
 }
 
 type Reponse struct {
@@ -25,8 +26,8 @@ type ParsedResult struct {
 	ErorrMessage string `json:"ErrorMessage"`
 }
 
-func New(token string) *Client {
-	return &Client{token}
+func New(tokens []string) *Client {
+	return &Client{tokens}
 }
 
 func (c *Client) ExtractWords(filepath string) ([]string, error) {
@@ -77,8 +78,9 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	req.Header.Add("apikey", c.token)
+	token := slice.Choose(c.tokens)
+	fmt.Println("Token for ocr.space: ", token)
+	req.Header.Add("apikey", token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	client := &http.Client{}

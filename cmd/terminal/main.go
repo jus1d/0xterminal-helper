@@ -33,6 +33,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	bot := telegram.New(logger, conf.Telegram, storage, ocr.New(conf.OCR.Token))
+	bot := telegram.New(logger, conf.Telegram, storage, ocr.New(conf.OCR.Tokens))
 	bot.Run()
 }
