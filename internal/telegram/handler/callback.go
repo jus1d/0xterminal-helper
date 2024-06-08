@@ -175,7 +175,12 @@ func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {
 		return
 	}
 
-	date, _ := time.Parse("02-01-2006", parts[1])
+	var date time.Time
+	if parts[1] == "today" {
+		date = time.Now()
+	} else {
+		date, _ = time.Parse("02-01-2006", parts[1])
+	}
 
 	report, err := h.storage.GetDailyReport(date)
 	if err != nil {

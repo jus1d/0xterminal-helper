@@ -10,7 +10,7 @@ import (
 func GetMarkupAdmin() *tgbotapi.InlineKeyboardMarkup {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Daily Report", time.Now().Format("daily-report:02-01-2006")),
+			tgbotapi.NewInlineKeyboardButtonData("Daily Report", "daily-report:today"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Dataset", "dataset"),
@@ -27,7 +27,7 @@ func GetmarkupDailyReport(date time.Time) *tgbotapi.InlineKeyboardMarkup {
 			tgbotapi.NewInlineKeyboardButtonData("»", date.Add(24*time.Hour).Format("daily-report:02-01-2006")),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Today", time.Now().Format("daily-report:02-01-2006")),
+			tgbotapi.NewInlineKeyboardButtonData("Today", "daily-report:today"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("« Back", "admin-panel"),
