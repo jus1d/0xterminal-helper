@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Unique returns a new slice with unique elements.
 func Unique[T comparable](slice []T) []T {
 	unique := make([]T, 0, len(slice))
 	seen := make(map[T]struct{})
@@ -20,12 +21,15 @@ func Unique[T comparable](slice []T) []T {
 	return unique
 }
 
+// Choose returns a random element from the provided slice.
 func Choose[T any](slice []T) T {
 	if len(slice) == 0 {
 		var zero T
 		return zero
 	}
-	rand.Seed(time.Now().UnixNano())
-	index := rand.Intn(len(slice))
+
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+	index := r.Intn(len(slice))
 	return slice[index]
 }

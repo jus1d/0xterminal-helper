@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -75,6 +76,7 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 
 	// h.sendTextMessage(author.ID, "<b>To improve the quality of image recognition, please disable the effects in $TERMINAL\n\n</b>$TERMINAL -> settings -> effects -> turn off", nil)
 	sticker, _ := h.sendSticker(author.ID, WaitingSticker)
+	defer h.deleteMessage(author.ID, sticker.MessageID)
 
 	_, exists := h.stages[author.ID]
 	if !exists {
@@ -110,8 +112,7 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		return
 	}
 
-	// TODO(#26): add context time limitation to words extraction
-	words, err := h.ocr.ExtractWords(path)
+	words, err := h.ocr.ExtractWords(context.Background(), path)
 	if err != nil {
 		log.Error("can't read words from image", sl.Err(err))
 		h.sendTextMessage(u.Message.From.ID, "🚨 <b>Can't read words from this image</b>", nil)
@@ -122,8 +123,6 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 	if err != nil {
 		h.log.Error("failed to delete temporary file", sl.Err(err))
 	}
-
-	h.deleteMessage(author.ID, sticker.MessageID)
 
 	if len(words) < 6 {
 		var content string

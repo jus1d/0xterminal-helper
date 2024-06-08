@@ -2,7 +2,9 @@ package ocr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -11,39 +13,55 @@ import (
 	"path/filepath"
 	"strings"
 	"terminal/pkg/slice"
+	"time"
 )
 
 type Client struct {
 	tokens []string
 }
 
-type Reponse struct {
-	ParsedResults []ParsedResult `json:"ParsedResults"`
+type responseOCR struct {
+	Results []parsedResultOCR `json:"ParsedResults"`
 }
 
-type ParsedResult struct {
-	ParsedText   string `json:"ParsedText"`
-	ErorrMessage string `json:"ErrorMessage"`
+type parsedResultOCR struct {
+	Text string `json:"ParsedText"`
+	Err  string `json:"ErrorMessage"`
+}
+
+type response struct {
+	text string
+	err  error
 }
 
 func New(tokens []string) *Client {
 	return &Client{tokens}
 }
 
-func (c *Client) ExtractWords(filepath string) ([]string, error) {
-	text, err := c.extractTextFromImage(filepath)
-	if err != nil {
-		return nil, err
+func (c *Client) ExtractWords(ctx context.Context, filepath string) ([]string, error) {
+	limitation := 3 * time.Second
+	ctx, cancel := context.WithTimeout(ctx, limitation)
+	defer cancel()
+
+	respch := make(chan response)
+
+	go func() {
+		text, err := c.extractTextFromImage(filepath)
+		respch <- response{text, err}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("ocr: extracting text from image took too long")
+		case resp := <-respch:
+			words := findWords(resp.text)
+			return words, resp.err
+		}
 	}
-
-	words := findWords(text)
-
-	return words, nil
 }
 
 func (c *Client) extractTextFromImage(path string) (string, error) {
-	endpoint := "https://api.ocr.space/Parse/Image"
-
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -74,12 +92,12 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return "", err
 	}
 
+	endpoint := "https://api.ocr.space/Parse/Image"
 	req, err := http.NewRequest("POST", endpoint, &requestBody)
 	if err != nil {
 		return "", err
 	}
 	token := slice.Choose(c.tokens)
-	fmt.Println("Token for ocr.space: ", token)
 	req.Header.Add("apikey", token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
@@ -95,16 +113,19 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return "", err
 	}
 
-	var response Reponse
+	var response responseOCR
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return "", err
 	}
 
-	if response.ParsedResults[0].ErorrMessage != "" {
-		return response.ParsedResults[0].ParsedText, fmt.Errorf("ocr.extractTextFromImage: %s", response.ParsedResults[0].ErorrMessage)
+	if len(response.Results) == 0 {
+		return "", errors.New("ocr: no parsed results")
 	}
-	return response.ParsedResults[0].ParsedText, nil
+	if response.Results[0].Err != "" {
+		return response.Results[0].Text, fmt.Errorf("ocr: %s", response.Results[0].Err)
+	}
+	return response.Results[0].Text, nil
 }
 
 func findWords(text string) []string {
