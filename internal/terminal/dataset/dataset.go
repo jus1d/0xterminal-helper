@@ -32,7 +32,7 @@ func ExportDatasetToJSON(data *Dataset) (string, error) {
 	}
 
 	path := time.Now().Format("dataset-02-01-2006.json")
-	err = os.WriteFile(path, jsonData, 0644)
+	err = os.WriteFile(path, jsonData, 0600)
 	if err != nil {
 		return "", err
 	}

@@ -62,44 +62,10 @@ func (c *Client) ExtractWords(ctx context.Context, filepath string) ([]string, e
 }
 
 func (c *Client) extractTextFromImage(path string) (string, error) {
-	file, err := os.Open(path)
+	req, err := c.formRequest(path)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
-
-	var requestBody bytes.Buffer
-	writer := multipart.NewWriter(&requestBody)
-
-	part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
-	if err != nil {
-		return "", err
-	}
-	_, err = file.Seek(0, 0)
-	if err != nil {
-		return "", err
-	}
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return "", err
-	}
-
-	writer.WriteField("language", "eng")
-	writer.WriteField("isOverlayRequired", "true")
-
-	err = writer.Close()
-	if err != nil {
-		return "", err
-	}
-
-	endpoint := "https://api.ocr.space/Parse/Image"
-	req, err := http.NewRequest("POST", endpoint, &requestBody)
-	if err != nil {
-		return "", err
-	}
-	token := slice.Choose(c.tokens)
-	req.Header.Add("apikey", token)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -126,6 +92,49 @@ func (c *Client) extractTextFromImage(path string) (string, error) {
 		return response.Results[0].Text, fmt.Errorf("ocr: %s", response.Results[0].Err)
 	}
 	return response.Results[0].Text, nil
+}
+
+func (c *Client) formRequest(path string) (*http.Request, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	part, err := writer.CreateFormFile("file", filepath.Base(file.Name()))
+	if err != nil {
+		return nil, err
+	}
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return nil, err
+	}
+
+	writer.WriteField("language", "eng")
+	writer.WriteField("isOverlayRequired", "true")
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint := "https://api.ocr.space/Parse/Image"
+	req, err := http.NewRequest("POST", endpoint, &requestBody)
+	if err != nil {
+		return nil, err
+	}
+	token := slice.Choose(c.tokens)
+	req.Header.Add("apikey", token)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	return req, nil
 }
 
 func findWords(text string) []string {
@@ -179,12 +188,10 @@ func filterWordsByLength(words []string, correctLength int) []string {
 }
 
 func isWord(word string) bool {
-	// minimal word's length in TERMINAL is 4
 	if len(word) < 4 {
 		return false
 	}
 
-	// in TERMINAL we need only words, that contains only lowercase english letters
 	for _, char := range word {
 		if char < 'a' || char > 'z' {
 			return false

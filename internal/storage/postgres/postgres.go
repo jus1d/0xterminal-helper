@@ -12,7 +12,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // nolint: gosec
 )
 
 type Storage struct {
@@ -115,7 +115,7 @@ func (s *Storage) GetDataset() (*dataset.Dataset, error) {
 	for rows.Next() {
 		var game dataset.Game
 		var words pq.StringArray
-		err := rows.Scan(&words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
+		err = rows.Scan(&words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt, &game.User.Username, &game.User.TelegramID)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +151,7 @@ func (s *Storage) GetAllGames() ([]storage.Game, error) {
 	for rows.Next() {
 		var game storage.Game
 		var words pq.StringArray
-		err := rows.Scan(&game.ID, &game.TelegramID, &words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt)
+		err = rows.Scan(&game.ID, &game.TelegramID, &words, &game.Target, &game.AttemptsAmount, &game.WordsHash, &game.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +192,7 @@ func (s *Storage) GetDailyReport(date time.Time) (*storage.DailyReport, error) {
 
 	for rows.Next() {
 		var stat storage.DailyUserStat
-		err := rows.Scan(&stat.Username, &stat.GamesPlayed)
+		err = rows.Scan(&stat.Username, &stat.GamesPlayed)
 		if err != nil {
 			return nil, err
 		}
