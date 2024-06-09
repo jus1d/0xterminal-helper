@@ -1,8 +1,8 @@
 package slice
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 )
 
 // Unique returns a new slice with unique elements.
@@ -23,13 +23,16 @@ func Unique[T comparable](slice []T) []T {
 
 // Choose returns a random element from the provided slice.
 func Choose[T any](slice []T) T {
+	var zero T
 	if len(slice) == 0 {
-		var zero T
 		return zero
 	}
 
-	source := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(source)
-	index := r.Intn(len(slice))
-	return slice[index]
+	max := big.NewInt(int64(len(slice)))
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return zero
+	}
+
+	return slice[n.Int64()]
 }

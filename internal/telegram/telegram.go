@@ -62,33 +62,40 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 
 		log.Info("text message received", slog.String("content", str.Unescape(u.Message.Text)), slog.Int64("id", u.Message.From.ID), slog.String("username", u.Message.From.UserName))
 
-		switch u.Message.Text {
-		case "/start":
-			b.handler.CommandStart(u)
-		case "/newgame":
-			b.handler.CommandGame(u)
-		case "/a":
-			b.handler.CommandAdmin(u)
-		default:
-			b.handler.TextMessage(u)
+		commandHandlers := map[string]func(tgbotapi.Update){
+			"/start":   b.handler.CommandStart,
+			"/newgame": b.handler.CommandGame,
+			"/a":       b.handler.CommandAdmin,
 		}
 
+		handler, exists := commandHandlers[u.Message.Text]
+		if exists {
+			handler(u)
+			return
+		}
+
+		b.handler.TextMessage(u)
+		return
 	}
 	if u.CallbackQuery != nil {
 		query := u.CallbackData()
 		log.Info("callback received", slog.String("query", query), slog.Int64("id", u.CallbackQuery.From.ID), slog.String("username", u.CallbackQuery.From.UserName))
 
+		callbackHandlers := map[string]func(tgbotapi.Update){
+			"game-continue":  b.handler.CallbackContinueGame,
+			"start-new-game": b.handler.CallbackStartNewGame,
+			"words-list":     b.handler.CallbackWordsList,
+			"dataset":        b.handler.CallbackDataset,
+			"admin-panel":    b.handler.CallbackAdminPanel,
+		}
+
+		handler, exists := callbackHandlers[query]
+		if exists {
+			handler(u)
+			return
+		}
+
 		switch {
-		case query == "game-continue":
-			b.handler.CallbackContinueGame(u)
-		case query == "start-new-game":
-			b.handler.CallbackStartNewGame(u)
-		case query == "words-list":
-			b.handler.CallbackWordsList(u)
-		case query == "dataset":
-			b.handler.CallbackDataset(u)
-		case query == "admin-panel":
-			b.handler.CallbackAdminPanel(u)
 		case strings.HasPrefix(query, "daily-report:"):
 			b.handler.CallbackDailyReport(u)
 		case strings.HasPrefix(query, "choose-word:"):

@@ -66,6 +66,7 @@ func (h *Handler) TextMessage(u tgbotapi.Update) {
 	}
 }
 
+// nolint: gocyclo
 func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 	author := u.Message.From
 	log := h.log.With(
@@ -99,27 +100,21 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 		return
 	}
 
-	fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", h.client.Token, file.FilePath)
-
-	if _, err = os.Stat("./.temp"); os.IsNotExist(err) {
-		os.Mkdir("./.temp", 0755)
-	}
-	path := fmt.Sprintf("./.temp/%s.jpeg", photo.FileID)
-	err = downloadFile(path, fileURL)
+	destination, err := h.downloadFile(file)
 	if err != nil {
 		log.Error("failed to download file", sl.Err(err))
 		h.sendTextMessage(u.Message.From.ID, "🚨 <b>Can't read words from this image</b>", nil)
 		return
 	}
 
-	words, err := h.ocr.ExtractWords(context.Background(), path)
+	words, err := h.ocr.ExtractWords(context.Background(), destination)
 	if err != nil {
 		log.Error("can't read words from image", sl.Err(err))
 		h.sendTextMessage(u.Message.From.ID, "🚨 <b>Can't read words from this image</b>", nil)
 		return
 	}
 
-	err = os.Remove(path)
+	err = os.Remove(destination)
 	if err != nil {
 		h.log.Error("failed to delete temporary file", sl.Err(err))
 	}
@@ -175,19 +170,27 @@ func (h *Handler) PhotoMessage(u tgbotapi.Update) {
 	h.sendTextMessage(author.ID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(words)), GetMarkupWords(h.games[author.ID].AvailableWords()))
 }
 
-func downloadFile(filepath string, url string) error {
+func (h *Handler) downloadFile(file tgbotapi.File) (string, error) {
+	url := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", h.client.Token, file.FilePath)
+
+	if _, err := os.Stat("./.temp"); os.IsNotExist(err) {
+		os.Mkdir("./.temp", 0755)
+	}
+
+	destination := fmt.Sprintf("./.temp/%s.jpeg", file.FileID)
+
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	out, err := os.Create(filepath)
+	out, err := os.Create(destination)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
-	return err
+	return destination, err
 }
