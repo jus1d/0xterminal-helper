@@ -188,10 +188,10 @@ func (s *Storage) GetDailyReport(date time.Time) (*storage.DailyReport, error) {
 
 	defer rows.Close()
 
-	var userStats []storage.DailyUserStat
+	var userStats []storage.UserStat
 
 	for rows.Next() {
-		var stat storage.DailyUserStat
+		var stat storage.UserStat
 		err = rows.Scan(&stat.Username, &stat.GamesPlayed)
 		if err != nil {
 			return nil, err
@@ -229,7 +229,7 @@ func (s *Storage) GetDailyReport(date time.Time) (*storage.DailyReport, error) {
 	return &report, nil
 }
 
-func (s *Storage) GetGamesToUserStatistics() (map[string]int, error) {
+func (s *Storage) GetGamesToUserStatistics() ([]storage.UserStat, error) {
 	query := "SELECT u.username, COUNT(g.id) AS games_played FROM users u LEFT JOIN games g ON u.telegram_id = g.telegram_id GROUP BY u.username ORDER BY games_played DESC"
 
 	rows, err := s.db.Query(query)
@@ -239,15 +239,14 @@ func (s *Storage) GetGamesToUserStatistics() (map[string]int, error) {
 
 	defer rows.Close()
 
-	stats := make(map[string]int, 0)
+	stats := make([]storage.UserStat, 0)
 	for rows.Next() {
-		var username string
-		var gamesAmount int
-		err = rows.Scan(&username, &gamesAmount)
+		var stat storage.UserStat
+		err = rows.Scan(&stat.Username, &stat.GamesPlayed)
 		if err != nil {
 			return nil, err
 		}
-		stats[username] = gamesAmount
+		stats = append(stats, stat)
 	}
 
 	if err = rows.Err(); err != nil {

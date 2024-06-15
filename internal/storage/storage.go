@@ -22,7 +22,7 @@ type Storage interface {
 	GetDataset() (*dataset.Dataset, error)
 	GetAllGames() ([]Game, error)
 	GetDailyReport(date time.Time) (*DailyReport, error)
-	GetGamesToUserStatistics() (map[string]int, error)
+	GetGamesToUserStatistics() ([]UserStat, error)
 	GetUsersCount() (int, error)
 }
 
@@ -52,11 +52,11 @@ type Game struct {
 }
 
 type DailyReport struct {
-	Stats       []DailyUserStat
+	Stats       []UserStat
 	JoinedUsers []string
 }
 
-type DailyUserStat struct {
+type UserStat struct {
 	Username    string
 	GamesPlayed int
 }

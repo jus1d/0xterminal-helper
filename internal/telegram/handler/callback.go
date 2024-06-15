@@ -185,11 +185,9 @@ func (h *Handler) CallbackStats(u tgbotapi.Update) {
 		return
 	}
 
-	for username, amount := range gamesStats {
-		if amount == 0 {
-			builder.WriteString(fmt.Sprintf(" - @%s have no played games\n", username))
-		} else {
-			builder.WriteString(fmt.Sprintf(" - <b>%d</b> games played by @%s\n", amount, username))
+	for _, stat := range gamesStats {
+		if stat.GamesPlayed != 0 {
+			builder.WriteString(fmt.Sprintf(" - <b>%d</b> games played by @%s\n", stat.GamesPlayed, stat.Username))
 		}
 	}
 
