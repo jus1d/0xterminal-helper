@@ -13,6 +13,9 @@ func GetMarkupAdmin() *tgbotapi.InlineKeyboardMarkup {
 			tgbotapi.NewInlineKeyboardButtonData("Daily Report", "daily-report:today"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("All Time Statistics", "stats"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Dataset", "dataset"),
 		),
 	)
