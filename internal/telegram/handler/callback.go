@@ -211,7 +211,11 @@ func (h *Handler) CallbackStats(u tgbotapi.Update) {
 	sort.Ints(attempts)
 
 	for _, attempt := range attempts {
-		builder.WriteString(fmt.Sprintf(" - <b>%.2f%%</b> completed in <b>%d</b> attempt", attemptRatios[attempt], attempt))
+		if attemptCounts[attempt] == 1 {
+			builder.WriteString(fmt.Sprintf(" - <b>%.2f%%</b> (%d game) completed in <b>%d</b> attempt", attemptRatios[attempt], attemptCounts[attempt], attempt))
+		} else {
+			builder.WriteString(fmt.Sprintf(" - <b>%.2f%%</b> (%d games) completed in <b>%d</b> attempt", attemptRatios[attempt], attemptCounts[attempt], attempt))
+		}
 		if attempt == 1 {
 			builder.WriteString("\n")
 		} else {
