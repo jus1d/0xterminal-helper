@@ -22,6 +22,8 @@ type Storage interface {
 	GetDataset() (*dataset.Dataset, error)
 	GetAllGames() ([]Game, error)
 	GetDailyReport(date time.Time) (*DailyReport, error)
+	GetGamesToUserStatistics() (map[string]int, error)
+	GetUsersCount() (int, error)
 }
 
 const (

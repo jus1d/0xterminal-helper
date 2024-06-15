@@ -87,6 +87,7 @@ func (b *Bot) handleUpdate(u tgbotapi.Update) {
 			"words-list":     b.handler.CallbackWordsList,
 			"dataset":        b.handler.CallbackDataset,
 			"admin-panel":    b.handler.CallbackAdminPanel,
+			"stats":          b.handler.CallbackStats,
 		}
 
 		handler, exists := callbackHandlers[query]

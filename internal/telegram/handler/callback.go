@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"terminal/internal/storage"
@@ -144,6 +145,92 @@ func (h *Handler) CallbackAdminPanel(u tgbotapi.Update) {
 	content += fmt.Sprintf("<b>ID:</b> <code>%d</code>", author.ID)
 
 	h.editMessage(author.ID, messageID, content, GetMarkupAdmin())
+}
+
+func (h *Handler) CallbackStats(u tgbotapi.Update) {
+	author := u.CallbackQuery.From
+	messageID := u.CallbackQuery.Message.MessageID
+	log := h.log.With(
+		slog.String("op", "handler.CallbackStats"),
+		slog.String("username", author.UserName),
+		slog.String("id", strconv.FormatInt(author.ID, 10)),
+	)
+
+	user, err := h.storage.GetUserByTelegramID(author.ID)
+	if err != nil {
+		log.Error("could not get user from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Something went wrong... Try again later</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	if !user.IsAdmin {
+		h.editMessage(author.ID, messageID, "<b>You are not permitted to use this action</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	games, err := h.storage.GetAllGames()
+	if err != nil {
+		log.Error("could not get games from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Could not create statistics report</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("<b>All Time Statistics</b>\n\n<b>Total games:</b> %d\n", len(games)))
+
+	gamesStats, err := h.storage.GetGamesToUserStatistics()
+	if err != nil {
+		log.Error("could not get games statistics from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Could not create statistics report</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	for username, amount := range gamesStats {
+		if amount == 0 {
+			builder.WriteString(fmt.Sprintf(" - @%s have no played games\n", username))
+		} else {
+			builder.WriteString(fmt.Sprintf(" - <b>%d</b> games played by @%s\n", amount, username))
+		}
+	}
+
+	builder.WriteString("\n<b>Attempts ratio</b>\n")
+
+	attemptCounts := make(map[int]int)
+
+	for _, game := range games {
+		attemptCounts[game.AttemptsAmount]++
+	}
+
+	attemptRatios := make(map[int]float64)
+	for attempts, count := range attemptCounts {
+		attemptRatios[attempts] = (float64(count) / float64(len(games))) * 100
+	}
+
+	attempts := make([]int, 0, len(attemptRatios))
+	for attempt := range attemptRatios {
+		attempts = append(attempts, attempt)
+	}
+	sort.Ints(attempts)
+
+	for _, attempt := range attempts {
+		builder.WriteString(fmt.Sprintf(" - <b>%.2f%%</b> completed in <b>%d</b> attempt", attemptRatios[attempt], attempt))
+		if attempt == 1 {
+			builder.WriteString("\n")
+		} else {
+			builder.WriteString("s\n")
+		}
+	}
+
+	usersAmount, err := h.storage.GetUsersCount()
+	if err != nil {
+		log.Error("could not get users amount from database", sl.Err(err))
+		h.editMessage(author.ID, messageID, "<b>Could not create statistics report</b>", GetMarkupBackToAdmin())
+		return
+	}
+
+	builder.WriteString(fmt.Sprintf("\n<b>Total users:</b> %d", usersAmount))
+
+	h.editMessage(author.ID, messageID, builder.String(), GetMarkupBackToAdmin())
 }
 
 func (h *Handler) CallbackDailyReport(u tgbotapi.Update) {

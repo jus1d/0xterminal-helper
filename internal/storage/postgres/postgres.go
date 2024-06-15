@@ -228,3 +228,43 @@ func (s *Storage) GetDailyReport(date time.Time) (*storage.DailyReport, error) {
 
 	return &report, nil
 }
+
+func (s *Storage) GetGamesToUserStatistics() (map[string]int, error) {
+	query := "SELECT u.username, COUNT(g.id) AS games_played FROM users u LEFT JOIN games g ON u.telegram_id = g.telegram_id GROUP BY u.username ORDER BY games_played DESC"
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	stats := make(map[string]int, 0)
+	for rows.Next() {
+		var username string
+		var gamesAmount int
+		err = rows.Scan(&username, &gamesAmount)
+		if err != nil {
+			return nil, err
+		}
+		stats[username] = gamesAmount
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
+func (s *Storage) GetUsersCount() (int, error) {
+	query := "SELECT COUNT(*) FROM users"
+
+	var usersAmount int
+	err := s.db.QueryRow(query).Scan(&usersAmount)
+	if err != nil {
+		return 0, err
+	}
+
+	return usersAmount, nil
+}
