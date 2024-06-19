@@ -26,7 +26,7 @@ func (h *Handler) CallbackContinueGame(u tgbotapi.Update) {
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
+	h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(game.AvailableWords())), GetMarkupWords(game.AvailableWords()))
 }
 
 func (h *Handler) CallbackStartNewGame(u tgbotapi.Update) {
@@ -46,7 +46,7 @@ func (h *Handler) CallbackWordsList(u tgbotapi.Update) {
 		h.editMessage(author.ID, messageID, "<b>Use /newgame or button to start new game</b>", GetMarkupNewGame())
 		return
 	}
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(game.AvailableWords()))
+	h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(game.AvailableWords())), GetMarkupWords(game.AvailableWords()))
 }
 
 func (h *Handler) CallbackDataset(u tgbotapi.Update) {
@@ -367,5 +367,5 @@ func (h *Handler) CallbackChooseGuessedLetters(u tgbotapi.Update) {
 		return
 	}
 
-	h.editMessage(author.ID, messageID, "<b>Pick one of the words in the list</b>", GetMarkupWords(h.games[author.ID].AvailableWords()))
+	h.editMessage(author.ID, messageID, fmt.Sprintf("<b>Pick one of %d words in the list</b>", len(game.AvailableWords())), GetMarkupWords(game.AvailableWords()))
 }
