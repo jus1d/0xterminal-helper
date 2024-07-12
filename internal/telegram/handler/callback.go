@@ -86,7 +86,7 @@ func (h *Handler) CallbackDataset(u tgbotapi.Update) {
 
 	file, err := os.Open(path)
 	if err != nil {
-		log.Error("could not open file", err)
+		log.Error("could not open file", sl.Err(err))
 		h.editMessage(author.ID, messageID, "<b>Failed to compose dataset</b>", nil)
 		return
 	}

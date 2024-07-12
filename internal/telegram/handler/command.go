@@ -41,10 +41,11 @@ func (h *Handler) CommandGame(u tgbotapi.Update) {
 
 	game, exists := h.games[author.ID]
 	if exists {
-		content := "<b>You already have started game. Do you want to continue it?</b>\n\n<b>Words:</b>\n"
+		content := "<b>You already have started game. Do you want to continue it?</b>\n\n<b>Words:</b>\n<code>"
 		for _, word := range game.AvailableWords() {
-			content += fmt.Sprintf("<code>%s</code>\n", word)
+			content += fmt.Sprintf("%s\n", word)
 		}
+		content += "</code>"
 		h.sendTextMessage(author.ID, content, GetMarkupGameMenu())
 	} else {
 		h.sendTextMessage(author.ID, "Send me list of words in your $TERMINAL game", nil)
